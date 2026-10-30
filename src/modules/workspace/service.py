@@ -72,3 +72,68 @@ def create_workspace(
     except Exception:
         session.rollback()
         raise
+
+
+def update_workspace(
+    session: Session,
+    workspace_id: UUID,
+    name: str | None = None,
+    slug: str | None = None,
+    description: str | None = None,
+) -> Workspace | None:
+    """
+    Update workspace details.
+
+    Only the fields provided by the caller are updated.
+    Return None if the workspace does not exist.
+    """
+
+    try:
+        workspace = session.get(Workspace, workspace_id)
+
+        if workspace is None:
+            return None
+
+        if name is not None:
+            workspace.name = name
+
+        if slug is not None:
+            workspace.slug = slug
+
+        if description is not None:
+            workspace.description = description
+
+        session.commit()
+        session.refresh(workspace)
+
+        return workspace
+
+    except Exception:
+        session.rollback()
+        raise
+
+
+def delete_workspace(
+    session: Session,
+    workspace_id: UUID,
+) -> bool:
+    """
+    Delete a workspace.
+
+    Return True if deleted, or False if not found.
+    """
+
+    try:
+        workspace = session.get(Workspace, workspace_id)
+
+        if workspace is None:
+            return False
+
+        session.delete(workspace)
+        session.commit()
+
+        return True
+
+    except Exception:
+        session.rollback()
+        raise

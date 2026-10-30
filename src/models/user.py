@@ -100,3 +100,4 @@ class UserProfile(Base):
     user: Mapped["User"] = relationship(
         back_populates="profile",
     )
+    

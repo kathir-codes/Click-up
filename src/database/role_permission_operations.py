@@ -1,5 +1,6 @@
 from src.models.role import Role, Permission, RolePermission
-
+from src.models.role import Role, Permission, RolePermission
+from src.models.workspace import WorkspaceMember
 
 def assign_permissions_to_role(session, role, permission_names):
     """
@@ -45,3 +46,39 @@ def assign_permissions_to_role(session, role, permission_names):
                 permission_id=permission.permission_id,
             )
             session.add(role_permission)
+
+
+def user_has_workspace_permission(
+    session,
+    workspace_id,
+    user_id,
+    permission_name,
+):
+    """
+    Check whether a user has a specific permission in a workspace.
+    """
+
+    result = (
+        session.query(Permission.permission_id)
+        .join(
+            RolePermission,
+            Permission.permission_id == RolePermission.permission_id,
+        )
+        .join(
+            Role,
+            RolePermission.role_id == Role.role_id,
+        )
+        .join(
+            WorkspaceMember,
+            (WorkspaceMember.role_id == Role.role_id)
+            & (WorkspaceMember.workspace_id == Role.workspace_id),
+        )
+        .filter(
+            WorkspaceMember.workspace_id == workspace_id,
+            WorkspaceMember.user_id == user_id,
+            Permission.permission_name == permission_name,
+        )
+        .first()
+    )
+
+    return result is not None
