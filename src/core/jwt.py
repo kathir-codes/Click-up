@@ -49,28 +49,28 @@ def validate_access_token(token: str) -> dict:
 
 
 
-# def validate_id_token(token: str) -> dict:
-#     signing_key = jwks_client.get_signing_key_from_jwt(token)
+def validate_id_token(token: str) -> dict:
+    signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-#     claims = jwt.decode(
-#         token,
-#         signing_key.key,
-#         algorithms=["RS256"],
-#         issuer=COGNITO_ISSUER,
-#         audience=COGNITO_APP_CLIENT_ID,
-#         options={
-#             "require": [
-#                 "exp",
-#                 "iat",
-#                 "iss",
-#                 "sub",
-#                 "token_use",
-#                 "aud",
-#             ],
-#         },
-#     )
+    claims = jwt.decode(
+        token,
+        signing_key.key,
+        algorithms=["RS256"],
+        issuer=COGNITO_ISSUER,
+        audience=COGNITO_APP_CLIENT_ID,
+        options={
+            "require": [
+                "exp",
+                "iat",
+                "iss",
+                "sub",
+                "token_use",
+                "aud",
+            ],
+        },
+    )
 
-#     if claims.get("token_use") != "id":
-#         raise ValueError("ID token required.")
+    if claims.get("token_use") != "id":
+        raise ValueError("ID token required.")
 
-#     return claims
+    return claims
