@@ -1,10 +1,14 @@
 import strawberry
-from sqlalchemy import select
+
+from uuid import UUID
 
 from src.core.database import SessionLocal
 from src.core.jwt import validate_access_token
-from src.database.user_operations import get_user_profile
-from src.models.workspace import Workspace, WorkspaceMember
+from src.modules.user.service import get_profile
+from src.modules.workspace.service import (
+    get_user_workspaces,
+    get_user_workspace,
+)
 from src.modules.workspace.types import WorkspaceType
 
 
@@ -12,7 +16,11 @@ from src.modules.workspace.types import WorkspaceType
 class WorkspaceQuery:
 
     @strawberry.field
-    def my_workspaces(self, info: strawberry.Info) -> list[WorkspaceType]:
+    def my_workspaces(
+        self,
+        info: strawberry.Info,
+    ) -> list[WorkspaceType]:
+
         # 1. Get the Authorization header
         authorization = info.context["request"].headers.get("Authorization")
 
@@ -34,25 +42,21 @@ class WorkspaceQuery:
 
         # 3. Find the logged-in user's profile
         with SessionLocal() as session:
-            profile = get_user_profile(session, cognito_sub)
+            profile = get_profile(
+                session=session,
+                cognito_sub=cognito_sub,
+            )
 
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # 4. Find workspaces where this user is a member
-            statement = (
-                select(Workspace)
-                .join(
-                    WorkspaceMember,
-                    Workspace.workspace_id == WorkspaceMember.workspace_id,
-                )
-                .where(WorkspaceMember.user_id == profile.user_id)
-                .order_by(Workspace.created_at.desc())
+            # 4. Fetch workspaces through the service layer
+            workspaces = get_user_workspaces(
+                session=session,
+                user_id=profile.user_id,
             )
 
-            workspaces = session.scalars(statement).all()
-
-            # 5. Return the workspace data
+            # 5. Return workspace details
             return [
                 WorkspaceType(
                     workspace_id=str(workspace.workspace_id),
@@ -62,6 +66,7 @@ class WorkspaceQuery:
                 )
                 for workspace in workspaces
             ]
+
     @strawberry.field
     def workspace(
         self,
@@ -88,32 +93,35 @@ class WorkspaceQuery:
 
         cognito_sub = claims["sub"]
 
-        # 3. Find the user's profile
+        # 3. Validate the workspace ID
+        try:
+            workspace_uuid = UUID(workspace_id)
+        except ValueError as exc:
+            raise ValueError("Invalid workspace ID.") from exc
+
+        # 4. Find the logged-in user's profile
         with SessionLocal() as session:
-            profile = get_user_profile(session, cognito_sub)
+            profile = get_profile(
+                session=session,
+                cognito_sub=cognito_sub,
+            )
 
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # 4. Find the requested workspace only if the user is a member
-            statement = (
-                select(Workspace)
-                .join(
-                    WorkspaceMember,
-                    Workspace.workspace_id == WorkspaceMember.workspace_id,
-                )
-                .where(
-                    Workspace.workspace_id == workspace_id,
-                    WorkspaceMember.user_id == profile.user_id,
-                )
+            # 5. Fetch the workspace through the service layer
+            workspace = get_user_workspace(
+                session=session,
+                workspace_id=workspace_uuid,
+                user_id=profile.user_id,
             )
 
-            workspace = session.scalar(statement)
-
+            # 6. Return None if the workspace doesn't exist
+            # or the user isn't a member
             if workspace is None:
                 return None
 
-            # 5. Return workspace details
+            # 7. Return workspace details
             return WorkspaceType(
                 workspace_id=str(workspace.workspace_id),
                 name=workspace.name,

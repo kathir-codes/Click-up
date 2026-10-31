@@ -11,7 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.database.base import Base
+from src.db.base import Base
 
 
 class Tag(Base):
@@ -39,12 +39,12 @@ class Tag(Base):
         ForeignKey("workspaces.workspace_id", ondelete="CASCADE"),
         nullable=False,
     )
-
+    
     name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
     )
-
+    
     created_by: Mapped[UUID] = mapped_column(
         ForeignKey("users.user_id"),
         nullable=False,
