@@ -5,119 +5,141 @@ from sqlalchemy.orm import Session
 
 from src.models.workspace import Workspace, WorkspaceMember
 from src.models.role import Role
-from src.common.role_permissions import ROLE_PERMISSIONS
-from src.modules.authorization.repository import assign_permissions_to_role
 
-def create_workspace(
+
+# -----------------------------
+# WORKSPACE OPERATIONS
+# -----------------------------
+
+def create_workspace_record(
     session: Session,
     name: str,
     slug: str,
     description: str | None,
     creator_user_id: UUID,
 ) -> Workspace:
-    try:
-        workspace = Workspace(
-            name=name,
-            slug=slug,
-            description=description,
-            created_by=creator_user_id,
-        )
-        session.add(workspace)
-        session.flush()
+    workspace = Workspace(
+        name=name,
+        slug=slug,
+        description=description,
+        created_by=creator_user_id,
+    )
 
-        roles = {}
+    session.add(workspace)
+    session.flush()
 
-        for role_name, permissions in ROLE_PERMISSIONS.items():
-            role = Role(
-                workspace_id=workspace.workspace_id,
-                role_name=role_name,
-                is_system_role=True,
-                created_by=creator_user_id,
-            )
-            session.add(role)
-            session.flush()
-
-            roles[role_name] = role
-
-            assign_permissions_to_role(
-                session=session,
-                role=role,
-                permission_names=permissions,
-            )
-
-        membership = WorkspaceMember(
-            workspace_id=workspace.workspace_id,
-            user_id=creator_user_id,
-            role_id=roles["Owner"].role_id,
-        )
-        session.add(membership)
-
-        session.commit()
-        session.refresh(workspace)
-
-        return workspace
-
-    except Exception:
-        session.rollback()
-        raise
+    return workspace
 
 
-def update_workspace(
+def get_workspace(
     session: Session,
     workspace_id: UUID,
+) -> Workspace | None:
+
+    return session.get(Workspace, workspace_id)
+
+
+def update_workspace_record(
+    session: Session,
+    workspace: Workspace,
     name: str | None = None,
     slug: str | None = None,
     description: str | None = None,
-) -> Workspace | None:
-    try:
-        workspace = session.get(Workspace, workspace_id)
+) -> Workspace:
 
-        if workspace is None:
-            return None
+    if name is not None:
+        workspace.name = name
 
-        if name is not None:
-            workspace.name = name
+    if slug is not None:
+        workspace.slug = slug
 
-        if slug is not None:
-            workspace.slug = slug
+    if description is not None:
+        workspace.description = description
 
-        if description is not None:
-            workspace.description = description
+    session.flush()
 
-        session.commit()
-        session.refresh(workspace)
-
-        return workspace
-
-    except Exception:
-        session.rollback()
-        raise
+    return workspace
 
 
-def delete_workspace(
+def delete_workspace_record(
+    session: Session,
+    workspace: Workspace,
+) -> None:
+
+    session.delete(workspace)
+    session.flush()
+
+
+# -----------------------------
+# ROLE OPERATIONS
+# -----------------------------
+
+def create_workspace_role(
     session: Session,
     workspace_id: UUID,
-) -> bool:
-    try:
-        workspace = session.get(Workspace, workspace_id)
+    role_name: str,
+    creator_user_id: UUID,
+) -> Role:
 
-        if workspace is None:
-            return False
+    role = Role(
+        workspace_id=workspace_id,
+        role_name=role_name,
+        is_system_role=True,
+        created_by=creator_user_id,
+    )
 
-        session.delete(workspace)
-        session.commit()
+    session.add(role)
+    session.flush()
 
-        return True
+    return role
 
-    except Exception:
-        session.rollback()
-        raise
 
+def get_workspace_role(
+    session: Session,
+    workspace_id: UUID,
+    role_name: str,
+) -> Role | None:
+
+    statement = select(Role).where(
+        Role.workspace_id == workspace_id,
+        Role.role_name == role_name,
+    )
+
+    return session.scalar(statement)
+
+
+# -----------------------------
+# WORKSPACE MEMBER OPERATIONS
+# -----------------------------
+
+def create_workspace_member(
+    session: Session,
+    workspace_id: UUID,
+    user_id: UUID,
+    role_id: UUID,
+) -> WorkspaceMember:
+
+    membership = WorkspaceMember(
+        workspace_id=workspace_id,
+        user_id=user_id,
+        role_id=role_id,
+    )
+
+    session.add(membership)
+    session.flush()
+
+    return membership
+
+
+# -----------------------------
+# WORKSPACE QUERY OPERATIONS
+# -----------------------------
 
 def get_user_workspaces(
     session: Session,
     user_id: UUID,
 ) -> list[Workspace]:
+
     statement = (
         select(Workspace)
         .join(
@@ -136,6 +158,7 @@ def get_user_workspace(
     workspace_id: UUID,
     user_id: UUID,
 ) -> Workspace | None:
+
     statement = (
         select(Workspace)
         .join(

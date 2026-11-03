@@ -1,5 +1,4 @@
 from src.models.role import Role, Permission, RolePermission
-from src.models.role import Role, Permission, RolePermission
 from src.models.workspace import WorkspaceMember
 
 def assign_permissions_to_role(session, role, permission_names):

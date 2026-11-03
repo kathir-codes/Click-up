@@ -1,21 +1,27 @@
-
 import strawberry
-from uuid import UUID
+import logging
+
+
 
 from src.core.database import SessionLocal
-from src.core.jwt import validate_access_token
+from src.core.dependencies import get_current_user_sub
+
 from src.modules.user.service import get_profile
-from src.modules.authorization.service import check_workspace_permission
 from src.modules.workspace.service import (
     create_workspace,
     update_workspace,
     delete_workspace,
 )
+
 from src.modules.workspace.types import WorkspaceType
 
 
 @strawberry.type
 class WorkspaceMutation:
+
+    # -----------------------------
+    # CREATE WORKSPACE
+    # -----------------------------
 
     @strawberry.mutation
     def create_workspace(
@@ -25,25 +31,10 @@ class WorkspaceMutation:
         slug: str,
         description: str | None = None,
     ) -> WorkspaceType:
-
-        authorization = info.context["request"].headers.get("Authorization")
-
-        if not authorization or not authorization.startswith("Bearer "):
-            raise ValueError("Bearer token required.")
-
-        token = authorization.split(" ", 1)[1].strip()
-
-        if not token:
-            raise ValueError("Access token is missing.")
-
-        try:
-            claims = validate_access_token(token)
-        except Exception as exc:
-            raise ValueError("Invalid or expired access token.") from exc
-
-        cognito_sub = claims["sub"]
+        cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
+
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -67,6 +58,10 @@ class WorkspaceMutation:
                 description=workspace.description,
             )
 
+    # -----------------------------
+    # UPDATE WORKSPACE
+    # -----------------------------
+
     @strawberry.mutation
     def update_workspace(
         self,
@@ -77,29 +72,15 @@ class WorkspaceMutation:
         description: str | None = None,
     ) -> WorkspaceType:
 
-        authorization = info.context["request"].headers.get("Authorization")
-
-        if not authorization or not authorization.startswith("Bearer "):
-            raise ValueError("Bearer token required.")
-
-        token = authorization.split(" ", 1)[1].strip()
-
-        if not token:
-            raise ValueError("Access token is missing.")
-
-        try:
-            claims = validate_access_token(token)
-        except Exception as exc:
-            raise ValueError("Invalid or expired access token.") from exc
-
-        cognito_sub = claims["sub"]
+        cognito_sub = get_current_user_sub(info)
 
         try:
             workspace_uuid = UUID(workspace_id)
-        except ValueError as exc:
-            raise ValueError("Invalid workspace ID.") from exc
+        except ValueError:
+            raise ValueError("Invalid workspace ID.")
 
         with SessionLocal() as session:
+
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -108,21 +89,10 @@ class WorkspaceMutation:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            has_permission = check_workspace_permission(
-                session=session,
-                workspace_id=workspace_uuid,
-                user_id=profile.user_id,
-                permission_name="UPDATE_WORKSPACE",
-            )
-
-            if not has_permission:
-                raise ValueError(
-                    "You do not have permission to update this workspace."
-                )
-
             workspace = update_workspace(
                 session=session,
                 workspace_id=workspace_uuid,
+                user_id=profile.user_id,
                 name=name,
                 slug=slug,
                 description=description,
@@ -138,6 +108,10 @@ class WorkspaceMutation:
                 description=workspace.description,
             )
 
+    # -----------------------------
+    # DELETE WORKSPACE
+    # -----------------------------
+
     @strawberry.mutation
     def delete_workspace(
         self,
@@ -145,29 +119,15 @@ class WorkspaceMutation:
         workspace_id: str,
     ) -> bool:
 
-        authorization = info.context["request"].headers.get("Authorization")
-
-        if not authorization or not authorization.startswith("Bearer "):
-            raise ValueError("Bearer token required.")
-
-        token = authorization.split(" ", 1)[1].strip()
-
-        if not token:
-            raise ValueError("Access token is missing.")
-
-        try:
-            claims = validate_access_token(token)
-        except Exception as exc:
-            raise ValueError("Invalid or expired access token.") from exc
-
-        cognito_sub = claims["sub"]
+        cognito_sub = get_current_user_sub(info)
 
         try:
             workspace_uuid = UUID(workspace_id)
-        except ValueError as exc:
-            raise ValueError("Invalid workspace ID.") from exc
+        except ValueError:
+            raise ValueError("Invalid workspace ID.")
 
         with SessionLocal() as session:
+
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -176,21 +136,10 @@ class WorkspaceMutation:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            has_permission = check_workspace_permission(
-                session=session,
-                workspace_id=workspace_uuid,
-                user_id=profile.user_id,
-                permission_name="DELETE_WORKSPACE",
-            )
-
-            if not has_permission:
-                raise ValueError(
-                    "You do not have permission to delete this workspace."
-                )
-
             deleted = delete_workspace(
                 session=session,
                 workspace_id=workspace_uuid,
+                user_id=profile.user_id,
             )
 
             if not deleted:

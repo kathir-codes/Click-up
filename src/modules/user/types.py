@@ -1,4 +1,5 @@
 import strawberry
+from datetime import datetime
 
 
 @strawberry.type
@@ -7,4 +8,5 @@ class UserProfileType:
     name: str
     email: str
     bio: str | None
-    is_active: bool
+    created_at: datetime
+    updated_at: datetime
