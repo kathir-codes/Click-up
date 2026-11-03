@@ -1,7 +1,7 @@
 import strawberry
 import logging
 
-
+from uuid import UUID
 
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
