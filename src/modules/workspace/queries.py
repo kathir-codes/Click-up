@@ -9,9 +9,17 @@ from src.modules.user.service import get_profile
 from src.modules.workspace.service import (
     get_user_workspaces,
     get_user_workspace,
+    get_workspace_members,
 )
 
-from src.modules.workspace.types import WorkspaceType
+
+from src.modules.workspace.types import (
+    WorkspaceType,
+    WorkspaceMemberType,
+)
+from src.modules.authorization.service import check_workspace_permission
+
+
 
 
 @strawberry.type
@@ -97,3 +105,61 @@ class WorkspaceQuery:
                 slug=workspace.slug,
                 description=workspace.description,
             )
+
+
+    # -----------------------------
+    # GET WORKSPACE MEMBERS
+    # -----------------------------
+
+    @strawberry.field
+    def workspace_members(
+        self,
+        info: strawberry.Info,
+        workspace_id: str,
+    ) -> list[WorkspaceMemberType]:
+
+        cognito_sub = get_current_user_sub(info)
+
+        try:
+            workspace_uuid = UUID(workspace_id)
+        except ValueError:
+            raise ValueError("Invalid workspace ID.")
+
+        with SessionLocal() as session:
+
+            profile = get_profile(
+                session=session,
+                cognito_sub=cognito_sub,
+            )
+
+            if profile is None:
+                raise ValueError("User profile not found.")
+
+            # Check VIEW_WORKSPACE_MEMBERS permission
+            has_permission = check_workspace_permission(
+                session=session,
+                workspace_id=workspace_uuid,
+                user_id=profile.user_id,
+                permission_name="VIEW_WORKSPACE_MEMBERS",
+            )
+
+            if not has_permission:
+                raise ValueError(
+                    "You don't have permission to view workspace members."
+                )
+
+            members = get_workspace_members(
+                session=session,
+                workspace_id=workspace_uuid,
+            )
+
+            return [
+                WorkspaceMemberType(
+                    user_id=str(member.user_id),
+                    name=member_profile.name,
+                    email=email,
+                    role_name=role_name,
+                    joined_at=member.joined_at,
+                )
+                for member, member_profile, email, role_name in members
+            ]

@@ -2,10 +2,9 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
 from src.models.workspace import Workspace, WorkspaceMember
 from src.models.role import Role
-
+from src.models.user import User, UserProfile
 
 # -----------------------------
 # WORKSPACE OPERATIONS
@@ -130,6 +129,34 @@ def create_workspace_member(
 
     return membership
 
+def get_workspace_members(
+    session: Session,
+    workspace_id: UUID,
+):
+    statement = (
+        select(
+            WorkspaceMember,
+            UserProfile,
+            User.email,
+            Role.role_name,
+        )
+        .join(
+            User,
+            WorkspaceMember.user_id == User.user_id,
+        )
+        .join(
+            UserProfile,
+            User.user_id == UserProfile.user_id,
+        )
+        .join(
+            Role,
+            WorkspaceMember.role_id == Role.role_id,
+        )
+        .where(WorkspaceMember.workspace_id == workspace_id)
+        .order_by(WorkspaceMember.joined_at.asc())
+    )
+
+    return session.execute(statement).all()
 
 # -----------------------------
 # WORKSPACE QUERY OPERATIONS
@@ -172,3 +199,42 @@ def get_user_workspace(
     )
 
     return session.scalar(statement)
+
+
+
+def get_workspace_member(
+    session: Session,
+    workspace_id: UUID,
+    user_id: UUID,
+) -> WorkspaceMember | None:
+
+    statement = select(WorkspaceMember).where(
+        WorkspaceMember.workspace_id == workspace_id,
+        WorkspaceMember.user_id == user_id,
+    )
+
+    return session.scalar(statement)
+
+
+def delete_workspace_member(
+    session: Session,
+    membership: WorkspaceMember,
+) -> None:
+
+    session.delete(membership)
+    session.flush()
+
+
+def get_role_by_name(
+    session: Session,
+    workspace_id: UUID,
+    role_name: str,
+) -> Role | None:
+    return (
+        session.query(Role)
+        .filter(
+            Role.workspace_id == workspace_id,
+            Role.role_name == role_name,
+        )
+        .first()
+    )

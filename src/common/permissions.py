@@ -7,6 +7,9 @@ PERMISSIONS = {
 
     # ==================== Member and Invitation Permissions ====================
     "INVITE_MEMBER": "Invite workspace members",
+    "VIEW_INVITATIONS": "View workspace invitations",
+    "VIEW_WORKSPACE_MEMBERS": "View workspace members",
+    "CANCEL_INVITATION": "Cancel workspace invitations",
     "RESEND_INVITATION": "Resend an invitation",
     "REMOVE_MEMBER": "Remove a workspace member",
 

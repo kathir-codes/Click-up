@@ -10,22 +10,20 @@ from src.modules.user.queries import UserQuery
 from src.modules.user.mutations import UserMutation
 from src.modules.workspace.queries import WorkspaceQuery
 from src.modules.workspace.mutations import WorkspaceMutation
-
+from src.modules.invitation.mutations import InvitationMutation
+from src.modules.invitation.queries import InvitationQuery
 
 logger = logging.getLogger(__name__)
 
 
 @strawberry.type
-class Query(UserQuery, AuthUserQuery, WorkspaceQuery):
+class Query(UserQuery, AuthUserQuery, WorkspaceQuery, InvitationQuery):
     pass
 
 
 @strawberry.type
-class Mutation(AuthMutation, UserMutation, WorkspaceMutation):
+class Mutation(AuthMutation, UserMutation, WorkspaceMutation, InvitationMutation):
     pass
-
-
-schema = CustomSchema(query=Query, mutation=Mutation)
 
 
 schema = CustomSchema(query=Query, mutation=Mutation)

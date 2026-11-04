@@ -211,3 +211,97 @@ def get_user_workspace(
         workspace_id=workspace_id,
         user_id=user_id,
     )
+
+
+# -----------------------------
+# GET WORKSPACE MEMBERS
+# -----------------------------
+
+def get_workspace_members(
+    session: Session,
+    workspace_id: UUID,
+):
+    return repository.get_workspace_members(
+        session=session,
+        workspace_id=workspace_id,
+    )
+
+
+# -----------------------------
+# REMOVE WORKSPACE MEMBER
+# -----------------------------
+
+def remove_workspace_member(
+    session: Session,
+    workspace_id: UUID,
+    requester_user_id: UUID,
+    target_user_id: UUID,
+) -> bool:
+
+    try:
+        # 1. Check REMOVE_MEMBER permission
+        has_permission = check_workspace_permission(
+            session=session,
+            workspace_id=workspace_id,
+            user_id=requester_user_id,
+            permission_name="REMOVE_MEMBER",
+        )
+
+        if not has_permission:
+            raise ValueError(
+                "You do not have permission to remove workspace members."
+            )
+
+        # 2. Find target member
+        membership = repository.get_workspace_member(
+            session=session,
+            workspace_id=workspace_id,
+            user_id=target_user_id,
+        )
+
+        if membership is None:
+            raise ValueError("Workspace member not found.")
+
+        # 3. Find target member's role
+        from src.models.role import Role
+
+        target_role = session.get(Role, membership.role_id)
+
+        if target_role is None:
+            raise ValueError("Member role not found.")
+
+        # 4. Prevent removing Owner
+        if target_role.role_name == "Owner":
+            raise ValueError("Workspace Owner cannot be removed.")
+
+        # 5. Prevent Admin from removing another Admin
+        requester_membership = repository.get_workspace_member(
+            session=session,
+            workspace_id=workspace_id,
+            user_id=requester_user_id,
+        )
+
+        requester_role = session.get(Role, requester_membership.role_id)
+
+        if (
+            requester_role.role_name == "Admin"
+            and target_role.role_name != "Member"
+        ):
+            raise ValueError(
+                "Admin can remove Members only."
+            )
+
+        # 6. Delete workspace membership
+        repository.delete_workspace_member(
+            session=session,
+            membership=membership,
+        )
+
+        # 7. Commit
+        session.commit()
+
+        return True
+
+    except Exception:
+        session.rollback()
+        raise

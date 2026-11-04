@@ -8,8 +8,11 @@ from src.core.cognito import (
 )
 from src.core.database import SessionLocal
 from src.modules.user.service import sync_user_profile
-
-
+from graphql import GraphQLError
+from src.core.cognito_errors import handle_cognito_error
+from botocore.exceptions import ClientError
+from src.core.cognito_errors import handle_cognito_error
+from botocore.exceptions import ClientError
 def sign_up(name: str, email: str, password: str):
     username = email.strip().lower()
 
@@ -23,19 +26,27 @@ def sign_up(name: str, email: str, password: str):
         ],
     }
 
-    cognito.sign_up(**params)
+    try:
+        cognito.sign_up(**params)
 
+    except ClientError as error:
+        handle_cognito_error(error)
+        
     return "Signup successful. Check your email for a verification code."
 
 
 def confirm_sign_up(email: str, confirmation_code: str):
     username = email.strip().lower()
 
-    cognito.confirm_sign_up(
-        **get_client_params(username),
-        Username=username,
-        ConfirmationCode=confirmation_code,
-    )
+    try:
+        cognito.confirm_sign_up(
+            **get_client_params(username),
+            Username=username,
+            ConfirmationCode=confirmation_code,
+        )
+
+    except ClientError as error:
+        handle_cognito_error(error)
 
     user_response = cognito.admin_get_user(
         UserPoolId=COGNITO_USER_POOL_ID,
@@ -71,12 +82,18 @@ def confirm_sign_up(email: str, confirmation_code: str):
 def resend_confirmation_code(email: str):
     username = email.strip().lower()
 
-    cognito.resend_confirmation_code(
-        **get_client_params(username),
-        Username=username,
-    )
+    try:
+        cognito.resend_confirmation_code(
+            **get_client_params(username),
+            Username=username,
+        )
+
+    except ClientError as error:
+        handle_cognito_error(error)
 
     return "A new verification code has been requested."
+
+
 
 
 def sign_in(email: str, password: str):
@@ -90,11 +107,18 @@ def sign_in(email: str, password: str):
     if COGNITO_APP_CLIENT_SECRET:
         auth_parameters["SECRET_HASH"] = get_secret_hash(username)
 
-    response = cognito.initiate_auth(
-        ClientId=COGNITO_APP_CLIENT_ID,
-        AuthFlow="USER_PASSWORD_AUTH",
-        AuthParameters=auth_parameters,
-    )
+
+
+    
+    try:
+        response = cognito.initiate_auth(
+            ClientId=COGNITO_APP_CLIENT_ID,
+            AuthFlow="USER_PASSWORD_AUTH",
+            AuthParameters=auth_parameters,
+        )
+
+    except ClientError as error:
+        handle_cognito_error(error)
 
     result = response.get("AuthenticationResult")
 
@@ -102,6 +126,10 @@ def sign_in(email: str, password: str):
         raise ValueError("Additional authentication is required.")
 
     return result
+
+
+
+
 
 
 def refresh_tokens(refresh_token: str):
@@ -113,6 +141,12 @@ def refresh_tokens(refresh_token: str):
     if COGNITO_APP_CLIENT_SECRET:
         params["ClientSecret"] = COGNITO_APP_CLIENT_SECRET
 
-    response = cognito.get_tokens_from_refresh_token(**params)
+    try:
+        response = cognito.get_tokens_from_refresh_token(**params)
+
+    except ClientError as error:
+        handle_cognito_error(error)
 
     return response["AuthenticationResult"]
+
+

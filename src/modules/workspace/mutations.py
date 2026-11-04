@@ -11,6 +11,7 @@ from src.modules.workspace.service import (
     create_workspace,
     update_workspace,
     delete_workspace,
+    remove_workspace_member,
 )
 
 from src.modules.workspace.types import WorkspaceType
@@ -146,3 +147,43 @@ class WorkspaceMutation:
                 raise ValueError("Workspace not found.")
 
             return True
+
+
+    # -----------------------------
+    # REMOVE WORKSPACE MEMBER
+    # -----------------------------
+
+    @strawberry.mutation
+    def remove_workspace_member(
+        self,
+        info: strawberry.Info,
+        workspace_id: str,
+        target_user_id: str,
+    ) -> bool:
+
+        cognito_sub = get_current_user_sub(info)
+
+        try:
+            workspace_uuid = UUID(workspace_id)
+            target_user_uuid = UUID(target_user_id)
+        except ValueError:
+            raise ValueError("Invalid workspace ID or target user ID.")
+
+        with SessionLocal() as session:
+
+            profile = get_profile(
+                session=session,
+                cognito_sub=cognito_sub,
+            )
+
+            if profile is None:
+                raise ValueError("User profile not found.")
+
+            removed = remove_workspace_member(
+                session=session,
+                workspace_id=workspace_uuid,
+                requester_user_id=profile.user_id,
+                target_user_id=target_user_uuid,
+            )
+
+            return removed

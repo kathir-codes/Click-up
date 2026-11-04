@@ -10,6 +10,9 @@ ROLE_PERMISSIONS = {
     # ==================== Admin Role Permissions ====================
     "Admin": {
         "UPDATE_WORKSPACE",
+        "VIEW_INVITATIONS",
+        "CANCEL_INVITATION",
+        "VIEW_WORKSPACE_MEMBERS",
         "INVITE_MEMBER",
         "RESEND_INVITATION",
         "REMOVE_MEMBER",
