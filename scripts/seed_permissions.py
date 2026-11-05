@@ -1,27 +1,32 @@
+
 from src.core.database import SessionLocal
-from src.common.permissions import PERMISSIONS
-from src.models.role import Permission
+from src.common.permissions import Permission
+from src.models.role import Permission as PermissionModel
 
 
 def seed_permissions():
     with SessionLocal() as session:
         try:
-            # Get permission names that already exist in the database.
+            # Get existing permission names from the database.
             existing_permissions = {
                 name
-                for (name,) in session.query(Permission.permission_name).all()
+                for (name,) in session.query(
+                    PermissionModel.permission_name
+                ).all()
             }
 
-            # Insert only permissions that are missing.
-            for permission_name, description in PERMISSIONS.items():
-                if permission_name not in existing_permissions:
-                    permission = Permission(
-                        permission_name=permission_name,
-                        description=description,
+            # Insert only missing permissions from the Enum.
+            for permission in Permission:
+                if permission.value not in existing_permissions:
+                    session.add(
+                        PermissionModel(
+                            permission_name=permission.value,
+                            description=permission.name.replace(
+                                "_", " "
+                            ).title(),
+                        )
                     )
-                    session.add(permission)
 
-            # Save all new permissions to the database.
             session.commit()
 
             print("Permission seeding completed successfully.")
@@ -29,8 +34,6 @@ def seed_permissions():
         except Exception:
             session.rollback()
             raise
-
-
 
 
 if __name__ == "__main__":

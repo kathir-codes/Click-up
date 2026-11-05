@@ -1,45 +1,49 @@
 
-from src.common.permissions import PERMISSIONS
+from src.common.permissions import Permission
 
 
 # ==================== Owner Role Permissions ====================
-# Owner receives all workspace permissions except CREATE_WORKSPACE.
+# Owner receives all permissions except CREATE_WORKSPACE.
+
 ROLE_PERMISSIONS = {
-    "Owner": set(PERMISSIONS),
+
+    "Owner": set(Permission) - {
+        Permission.CREATE_WORKSPACE
+    },
 
     # ==================== Admin Role Permissions ====================
     "Admin": {
-        "UPDATE_WORKSPACE",
-        "VIEW_INVITATIONS",
-        "CANCEL_INVITATION",
-        "VIEW_WORKSPACE_MEMBERS",
-        "INVITE_MEMBER",
-        "RESEND_INVITATION",
-        "REMOVE_MEMBER",
-        "VIEW_ROLES",
-        "CREATE_TASK",
-        "VIEW_TASK",
-        "UPDATE_TASK",
-        "DELETE_TASK",
-        "ASSIGN_TASK",
-        "UPDATE_TASK_STATUS",
-        "UPDATE_TASK_PRIORITY",
-        "CREATE_TAG",
-        "UPDATE_TAG",
-        "MANAGE_TASK_TAGS",
-        "ADD_COMMENT",
-        "UPDATE_COMMENT",
-        "DELETE_COMMENT",
-        "VIEW_TASK_ACTIVITY",
+        Permission.UPDATE_WORKSPACE,
+        Permission.VIEW_INVITATIONS,
+        Permission.CANCEL_INVITATION,
+        Permission.VIEW_WORKSPACE_MEMBERS,
+        Permission.INVITE_MEMBER,
+        Permission.RESEND_INVITATION,
+        Permission.REMOVE_MEMBER,
+        Permission.VIEW_ROLES,
+        Permission.CREATE_TASK,
+        Permission.VIEW_TASK,
+        Permission.UPDATE_TASK,
+        Permission.DELETE_TASK,
+        Permission.ASSIGN_TASK,
+        Permission.UPDATE_TASK_STATUS,
+        Permission.UPDATE_TASK_PRIORITY,
+        Permission.CREATE_TAG,
+        Permission.UPDATE_TAG,
+        Permission.MANAGE_TASK_TAGS,
+        Permission.ADD_COMMENT,
+        Permission.UPDATE_COMMENT,
+        Permission.DELETE_COMMENT,
+        Permission.VIEW_TASK_ACTIVITY,
     },
 
     # ==================== Member Role Permissions ====================
     "Member": {
-        "CREATE_TASK",
-        "VIEW_TASK",
-        "UPDATE_TASK",
-        "UPDATE_TASK_STATUS",
-        "ADD_COMMENT",
-        "VIEW_TASK_ACTIVITY",
+        Permission.CREATE_TASK,
+        Permission.VIEW_TASK,
+        Permission.UPDATE_TASK,
+        Permission.UPDATE_TASK_STATUS,
+        Permission.ADD_COMMENT,
+        Permission.VIEW_TASK_ACTIVITY,
     },
 }

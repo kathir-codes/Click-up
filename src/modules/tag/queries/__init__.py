@@ -1,0 +1,1 @@
+from src.modules.tag.queries.tag_queries import TagQuery

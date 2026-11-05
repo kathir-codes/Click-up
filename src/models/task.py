@@ -30,8 +30,15 @@ class TaskPriority(str, enum.Enum):
 
 
 class TaskActivityField(str, enum.Enum):
+    TASK_CREATED = "TASK_CREATED"
+    TITLE = "TITLE"
+    DESCRIPTION = "DESCRIPTION"
     STATUS = "STATUS"
     PRIORITY = "PRIORITY"
+    ASSIGNEE = "ASSIGNEE"
+    TAG_ADDED = "TAG_ADDED"
+    TAG_REMOVED = "TAG_REMOVED"
+    COMMENT_ADDED = "COMMENT_ADDED"
 
 
 class Task(Base):
@@ -139,12 +146,12 @@ class TaskActivity(Base):
     )
 
     old_value: Mapped[str | None] = mapped_column(
-        String(100),
+        Text,
         nullable=True,
     )
 
     new_value: Mapped[str | None] = mapped_column(
-        String(100),
+        Text,
         nullable=True,
     )
 

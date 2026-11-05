@@ -1,0 +1,1 @@
+from src.modules.workspace.mutations.workspace_mutations import WorkspaceMutation
