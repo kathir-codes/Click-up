@@ -37,7 +37,7 @@ def create_task_comment(
             session=session,
             workspace_id=workspace_id,
             user_id=user_id,
-            permission_name=Permission.VIEW_TASK,
+            permission_name=Permission.ADD_COMMENT,
         )
 
         if not has_permission:
@@ -141,7 +141,7 @@ def update_task_comment(
             session=session,
             workspace_id=workspace_id,
             user_id=user_id,
-            permission_name=Permission.VIEW_TASK,
+            permission_name=Permission.UPDATE_COMMENT,
         )
 
         if not has_permission:
@@ -203,7 +203,7 @@ def delete_task_comment(
             session=session,
             workspace_id=workspace_id,
             user_id=user_id,
-            permission_name=Permission.VIEW_TASK,
+            permission_name=Permission.DELETE_COMMENT,
         )
 
         if not has_permission:

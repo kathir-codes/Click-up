@@ -1,4 +1,3 @@
-
 import logging
 import strawberry
 
@@ -21,21 +20,20 @@ from src.modules.invitation.queries import InvitationQuery
 from src.modules.invitation.mutations import InvitationMutation
 
 # Task
-from src.modules.task.queries import TaskQuery, TaskCommentQuery
-from src.modules.task.mutations import TaskMutation
-from src.modules.task.mutations import TaskMutation, TaskCommentMutation
 from src.modules.task.queries import (
     TaskQuery,
     TaskCommentQuery,
     TaskActivityQuery,
 )
+from src.modules.task.mutations import (
+    TaskMutation,
+    TaskCommentMutation,
+)
 
-#tag
 # Tag
 from src.modules.tag.queries import TagQuery
 from src.modules.tag.mutations import TagMutation
-from src.modules.tag.queries import TagQuery
-from src.modules.tag.mutations import TagMutation
+
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +51,7 @@ class Query(
 ):
     pass
 
+
 @strawberry.type
 class Mutation(
     AuthMutation,
@@ -65,4 +64,8 @@ class Mutation(
 ):
     pass
 
-schema = CustomSchema(query=Query, mutation=Mutation)
+
+schema = CustomSchema(
+    query=Query,
+    mutation=Mutation,
+)

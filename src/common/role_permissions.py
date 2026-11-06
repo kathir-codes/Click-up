@@ -7,10 +7,8 @@ from src.common.permissions import Permission
 
 ROLE_PERMISSIONS = {
 
-    "Owner": set(Permission) - {
-        Permission.CREATE_WORKSPACE
-    },
-
+    "Owner": set(Permission),
+    
     # ==================== Admin Role Permissions ====================
     "Admin": {
         Permission.UPDATE_WORKSPACE,

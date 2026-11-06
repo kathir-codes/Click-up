@@ -1,6 +1,6 @@
 
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -51,7 +51,10 @@ def get_tasks_by_workspace(
 
     return (
         session.query(Task)
-        .filter(Task.workspace_id == workspace_id)
+        .filter(
+            Task.workspace_id == workspace_id,
+            Task.deleted_at.is_(None),
+        )
         .order_by(Task.created_at.desc())
         .all()
     )
@@ -72,6 +75,7 @@ def get_task_by_id(
         .filter(
             Task.task_id == task_id,
             Task.workspace_id == workspace_id,
+            Task.deleted_at.is_(None),
         )
         .first()
     )
@@ -112,7 +116,7 @@ def update_task_record(
 
 
 # -----------------------------
-# DELETE TASK RECORD
+# SOFT DELETE TASK RECORD
 # -----------------------------
 
 def delete_task_record(
@@ -120,9 +124,56 @@ def delete_task_record(
     task: Task,
 ) -> None:
 
-    session.delete(task)
+    deleted_time = datetime.now(timezone.utc)
+
+    # Soft delete the main task
+    task.deleted_at = deleted_time
+
+    # Soft delete active subtasks
+    for subtask in task.subtasks:
+        if subtask.deleted_at is None:
+            subtask.deleted_at = deleted_time
+
     session.flush()
 
+# -----------------------------
+# GET DELETED TASKS
+# -----------------------------
+
+def get_deleted_tasks_by_workspace(
+    session: Session,
+    workspace_id: UUID,
+) -> list[Task]:
+
+    return (
+        session.query(Task)
+        .filter(
+            Task.workspace_id == workspace_id,
+            Task.parent_task_id.is_(None),
+            Task.deleted_at.isnot(None),
+        )
+        .order_by(Task.deleted_at.desc())
+        .all()
+    )
+# -----------------------------
+# RESTORE TASK
+# -----------------------------
+
+def restore_task_record(
+    session: Session,
+    task: Task,
+) -> Task:
+
+    task.deleted_at = None
+
+    # Restore deleted subtasks
+    for subtask in task.subtasks:
+        if subtask.deleted_at is not None:
+            subtask.deleted_at = None
+
+    session.flush()
+
+    return task
 
 # -----------------------------
 # ASSIGN TASK RECORD
@@ -139,4 +190,59 @@ def assign_task_record(
     session.flush()
 
     return task
-    
+
+
+# -----------------------------
+# CREATE SUBTASK RECORD
+# -----------------------------
+
+def create_subtask_record(
+    session: Session,
+    parent_task: Task,
+    title: str,
+    description: str | None,
+    created_by: UUID,
+    status: TaskStatus = TaskStatus.TODO,
+    priority: TaskPriority = TaskPriority.MEDIUM,
+    assignee_id: UUID | None = None,
+    due_date: datetime | None = None,
+) -> Task:
+
+    subtask = Task(
+        workspace_id=parent_task.workspace_id,
+        parent_task_id=parent_task.task_id,
+        title=title,
+        description=description,
+        created_by=created_by,
+        status=status,
+        priority=priority,
+        assignee_id=assignee_id,
+        due_date=due_date,
+    )
+
+    session.add(subtask)
+    session.flush()
+
+    return subtask
+
+
+# -----------------------------
+# GET SUBTASKS BY PARENT
+# -----------------------------
+
+def get_subtasks_by_parent(
+    session: Session,
+    parent_task_id: UUID,
+    workspace_id: UUID,
+) -> list[Task]:
+
+    return (
+        session.query(Task)
+        .filter(
+            Task.parent_task_id == parent_task_id,
+            Task.workspace_id == workspace_id,
+            Task.deleted_at.is_(None),
+        )
+        .order_by(Task.created_at.asc())
+        .all()
+    )

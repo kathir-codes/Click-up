@@ -1,25 +1,44 @@
 
-from src.models.role import Role, Permission, RolePermission
+from src.common.permissions import Permission as PermissionEnum
+
+from src.models.role import (
+    Role,
+    Permission as PermissionModel,
+    RolePermission,
+)
 from src.models.workspace import WorkspaceMember
 
 
 def assign_permissions_to_role(session, role, permission_names):
+    """
+    Assign permissions to a role.
 
-    # Convert Enum values into strings
+    Enum members are converted to their names because the database
+    stores permission identifiers such as CREATE_TASK.
+    """
+
     permission_names = {
-        permission.value if hasattr(permission, "value") else permission
+        permission.name
+        if isinstance(permission, PermissionEnum)
+        else permission
         for permission in permission_names
     }
 
     # Find permission records in the database
     permissions = (
-        session.query(Permission)
-        .filter(Permission.permission_name.in_(permission_names))
+        session.query(PermissionModel)
+        .filter(
+            PermissionModel.permission_name.in_(permission_names)
+        )
         .all()
     )
 
     # Check whether every requested permission exists
-    found_names = {permission.permission_name for permission in permissions}
+    found_names = {
+        permission.permission_name
+        for permission in permissions
+    }
+
     missing_names = permission_names - found_names
 
     if missing_names:
@@ -32,7 +51,9 @@ def assign_permissions_to_role(session, role, permission_names):
         permission_id
         for (permission_id,) in (
             session.query(RolePermission.permission_id)
-            .filter(RolePermission.role_id == role.role_id)
+            .filter(
+                RolePermission.role_id == role.role_id
+            )
             .all()
         )
     }
@@ -40,11 +61,13 @@ def assign_permissions_to_role(session, role, permission_names):
     # Assign only permissions that are not already assigned
     for permission in permissions:
         if permission.permission_id not in existing_permission_ids:
-            role_permission = RolePermission(
-                role_id=role.role_id,
-                permission_id=permission.permission_id,
+            session.add(
+                RolePermission(
+                    role_id=role.role_id,
+                    permission_id=permission.permission_id,
+                )
             )
-            session.add(role_permission)
+
 
 def user_has_workspace_permission(
     session,
@@ -52,17 +75,21 @@ def user_has_workspace_permission(
     user_id,
     permission_name,
 ):
-    permission_name = (
-        permission_name.value
-        if hasattr(permission_name, "value")
-        else permission_name
-    )
+    """
+    Check whether a user has a particular permission
+    in a particular workspace.
+    """
+
+    # Convert Enum member into its database identifier
+    if isinstance(permission_name, PermissionEnum):
+        permission_name = permission_name.name
 
     return (
-        session.query(Permission)
+        session.query(PermissionModel)
         .join(
             RolePermission,
-            RolePermission.permission_id == Permission.permission_id,
+            RolePermission.permission_id
+            == PermissionModel.permission_id,
         )
         .join(
             Role,
@@ -75,7 +102,7 @@ def user_has_workspace_permission(
         .filter(
             WorkspaceMember.workspace_id == workspace_id,
             WorkspaceMember.user_id == user_id,
-            Permission.permission_name == permission_name,
+            PermissionModel.permission_name == permission_name,
         )
         .first()
         is not None

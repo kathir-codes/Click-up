@@ -9,7 +9,7 @@ from src.core.dependencies import get_current_user_sub
 
 from src.models.task import TaskStatus, TaskPriority
 from src.modules.user.services import get_profile
-
+from src.modules.task.services.task_service import create_subtask
 from src.modules.task.types import (
     TaskType,
     TaskStatusType,
@@ -63,6 +63,7 @@ class TaskMutation:
                 session=session,
                 cognito_sub=cognito_sub,
             )
+      
 
             if profile is None:
                 raise ValueError("User profile not found.")
@@ -214,7 +215,7 @@ class TaskMutation:
         try:
             task_uuid = UUID(task_id)
             workspace_uuid = UUID(workspace_id)
-            assignee_uuid = UUID(assignee_id) 
+            assignee_uuid = UUID(assignee_id) if assignee_id else None
         except ValueError:
             raise ValueError("Invalid task, workspace, or assignee ID.")
 
@@ -249,4 +250,77 @@ class TaskMutation:
                 due_date=task.due_date,
                 created_at=task.created_at,
                 updated_at=task.updated_at,
+            )
+
+
+
+    # -----------------------------
+    # CREATE SUBTASK
+    # -----------------------------
+
+    @strawberry.mutation
+    def create_subtask(
+        self,
+        info: strawberry.Info,
+        parent_task_id: str,
+        workspace_id: str,
+        title: str,
+        description: str | None = None,
+        status: TaskStatusType = TaskStatusType.TODO,
+        priority: TaskPriorityType = TaskPriorityType.MEDIUM,
+        assignee_id: str | None = None,
+        due_date: datetime | None = None,
+    ) -> TaskType:
+
+        cognito_sub = get_current_user_sub(info)
+
+        try:
+            parent_uuid = UUID(parent_task_id)
+            workspace_uuid = UUID(workspace_id)
+            assignee_uuid = UUID(assignee_id) if assignee_id else None
+
+        except ValueError:
+            raise ValueError(
+                "Invalid parent task ID, workspace ID, or assignee ID."
+            )
+
+        with SessionLocal() as session:
+
+            profile = get_profile(
+                session=session,
+                cognito_sub=cognito_sub,
+            )
+
+            if profile is None:
+                raise ValueError("User profile not found.")
+
+            subtask = create_subtask(
+                session=session,
+                parent_task_id=parent_uuid,
+                workspace_id=workspace_uuid,
+                user_id=profile.user_id,
+                title=title,
+                description=description,
+                status=TaskStatus(status.value),
+                priority=TaskPriority(priority.value),
+                assignee_id=assignee_uuid,
+                due_date=due_date,
+            )
+
+            return TaskType(
+                task_id=str(subtask.task_id),
+                workspace_id=str(subtask.workspace_id),
+                parent_task_id=str(subtask.parent_task_id),
+                title=subtask.title,
+                description=subtask.description,
+                status=TaskStatusType(subtask.status.value),
+                priority=TaskPriorityType(subtask.priority.value),
+                assignee_id=(
+                    str(subtask.assignee_id)
+                    if subtask.assignee_id else None
+                ),
+                created_by=str(subtask.created_by),
+                due_date=subtask.due_date,
+                created_at=subtask.created_at,
+                updated_at=subtask.updated_at,
             )

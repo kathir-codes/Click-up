@@ -1,3 +1,4 @@
+
 import enum
 from datetime import datetime
 from uuid import UUID, uuid4
@@ -12,7 +13,8 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.db.base import Base
 
 
@@ -42,6 +44,7 @@ class TaskActivityField(str, enum.Enum):
 
 
 class Task(Base):
+
     __tablename__ = "tasks"
 
     __table_args__ = (
@@ -54,6 +57,7 @@ class Task(Base):
             ["workspace_id", "parent_task_id"],
             ["tasks.workspace_id", "tasks.task_id"],
             name="fk_task_parent_same_workspace",
+            ondelete="CASCADE",
         ),
     )
 
@@ -107,6 +111,12 @@ class Task(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    # Soft delete fields
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -121,8 +131,40 @@ class Task(Base):
         nullable=False,
     )
 
+    # Parent task relationship
+    parent_task: Mapped["Task | None"] = relationship(
+        "Task",
+        remote_side=[task_id],
+        foreign_keys=[parent_task_id],
+        back_populates="subtasks",
+    )
+
+    # One parent task can have multiple subtasks
+    subtasks: Mapped[list["Task"]] = relationship(
+        "Task",
+        foreign_keys=[parent_task_id],
+        back_populates="parent_task",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    # One Task can have multiple comments
+    comments: Mapped[list["TaskComment"]] = relationship(
+        back_populates="task",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    # One Task can have multiple activity records
+    activities: Mapped[list["TaskActivity"]] = relationship(
+        back_populates="task",
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+
 
 class TaskActivity(Base):
+
     __tablename__ = "task_activity"
 
     activity_id: Mapped[UUID] = mapped_column(
@@ -161,7 +203,13 @@ class TaskActivity(Base):
         nullable=False,
     )
 
+    task: Mapped["Task"] = relationship(
+        back_populates="activities",
+    )
+
+
 class TaskComment(Base):
+
     __tablename__ = "task_comments"
 
     comment_id: Mapped[UUID] = mapped_column(
@@ -195,4 +243,8 @@ class TaskComment(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+
+    task: Mapped["Task"] = relationship(
+        back_populates="comments",
     )
