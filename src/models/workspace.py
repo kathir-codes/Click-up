@@ -54,6 +54,11 @@ class Workspace(Base):
         nullable=False,
     )
 
+    deleted_at: Mapped[datetime | None] = mapped_column(
+    DateTime(timezone=True),
+    nullable=True,
+    )
+
 
 class WorkspaceMember(Base):
     __tablename__ = "workspace_members"

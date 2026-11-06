@@ -305,3 +305,49 @@ def remove_workspace_member(
     except Exception:
         session.rollback()
         raise
+
+
+# -----------------------------
+# RESTORE WORKSPACE
+# -----------------------------
+
+def restore_workspace(
+    session: Session,
+    workspace_id: UUID,
+    user_id: UUID,
+) -> bool:
+
+    try:
+        # 1. Check permission
+        has_permission = check_workspace_permission(
+            session=session,
+            workspace_id=workspace_id,
+            user_id=user_id,
+            permission_name=Permission.DELETE_WORKSPACE,
+        )
+
+        if not has_permission:
+            raise ValueError(
+                "You do not have permission to restore this workspace."
+            )
+
+        # 2. Find workspace, including deleted records
+        workspace = session.get(Workspace, workspace_id)
+
+        if workspace is None or workspace.deleted_at is None:
+            return False
+
+        # 3. Restore workspace
+        repository.restore_workspace_record(
+            session=session,
+            workspace=workspace,
+        )
+
+        # 4. Commit
+        session.commit()
+
+        return True
+
+    except Exception:
+        session.rollback()
+        raise

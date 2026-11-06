@@ -2,7 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
+from datetime import datetime, timezone
 from src.models.workspace import Workspace, WorkspaceMember
 from src.models.role import Role
 from src.models.user import User, UserProfile
@@ -38,8 +38,12 @@ def get_workspace(
     workspace_id: UUID,
 ) -> Workspace | None:
 
-    return session.get(Workspace, workspace_id)
+    statement = select(Workspace).where(
+        Workspace.workspace_id == workspace_id,
+        Workspace.deleted_at.is_(None),
+    )
 
+    return session.scalar(statement)
 
 def update_workspace_record(
     session: Session,
@@ -62,13 +66,13 @@ def update_workspace_record(
 
     return workspace
 
-
 def delete_workspace_record(
     session: Session,
     workspace: Workspace,
 ) -> None:
 
-    session.delete(workspace)
+    workspace.deleted_at = datetime.now(timezone.utc)
+
     session.flush()
 
 
@@ -210,7 +214,7 @@ def delete_workspace_member(
 # -----------------------------
 # WORKSPACE QUERY OPERATIONS
 # -----------------------------
-
+# Get all active workspaces that a particular user belongs to.
 def get_user_workspaces(
     session: Session,
     user_id: UUID,
@@ -224,6 +228,7 @@ def get_user_workspaces(
         )
         .where(
             WorkspaceMember.user_id == user_id,
+            Workspace.deleted_at.is_(None),
         )
         .order_by(
             Workspace.created_at.desc(),
@@ -232,6 +237,10 @@ def get_user_workspaces(
 
     return list(session.scalars(statement).all())
 
+# -----------------------------
+# GET USER WORKSPACE
+# -----------------------------
+#Get one specific workspace that a particular user belongs to.
 
 def get_user_workspace(
     session: Session,
@@ -248,7 +257,24 @@ def get_user_workspace(
         .where(
             Workspace.workspace_id == workspace_id,
             WorkspaceMember.user_id == user_id,
+            Workspace.deleted_at.is_(None),
         )
     )
 
     return session.scalar(statement)
+
+
+# -----------------------------
+# RESTORE WORKSPACE
+# -----------------------------
+
+def restore_workspace_record(
+    session: Session,
+    workspace: Workspace,
+) -> Workspace:
+
+    workspace.deleted_at = None
+
+    session.flush()
+
+    return workspace

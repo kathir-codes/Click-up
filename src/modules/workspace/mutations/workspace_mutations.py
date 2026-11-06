@@ -10,6 +10,7 @@ from src.modules.workspace.services import (
     create_workspace,
     update_workspace,
     delete_workspace,
+    restore_workspace as restore_workspace_service,
     remove_workspace_member,
 )
 
@@ -186,3 +187,42 @@ class WorkspaceMutation:
             )
 
             return removed
+
+    # -----------------------------
+    # RESTORE WORKSPACE
+    # -----------------------------
+
+    @strawberry.mutation
+    def restore_workspace(
+        self,
+        info: strawberry.Info,
+        workspace_id: str,
+    ) -> bool:
+
+        cognito_sub = get_current_user_sub(info)
+
+        try:
+            workspace_uuid = UUID(workspace_id)
+        except ValueError:
+            raise ValueError("Invalid workspace ID.")
+
+        with SessionLocal() as session:
+
+            profile = get_profile(
+                session=session,
+                cognito_sub=cognito_sub,
+            )
+
+            if profile is None:
+                raise ValueError("User profile not found.")
+
+            restored = restore_workspace_service(
+                session=session,
+                workspace_id=workspace_uuid,
+                user_id=profile.user_id,
+            )
+
+            if not restored:
+                raise ValueError("Deleted workspace not found.")
+
+            return True

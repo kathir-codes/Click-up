@@ -434,8 +434,6 @@ def create_subtask(
         if parent_task is None:
             raise ValueError("Parent task not found.")
 
-        if parent_task.deleted_at is not None:
-            raise ValueError("Cannot create a subtask under a deleted task.")
 
         # Prevent nested subtasks
         if parent_task.parent_task_id is not None:
@@ -537,3 +535,79 @@ def get_subtasks(
         parent_task_id=parent_task_id,
         workspace_id=workspace_id,
     )
+
+# -----------------------------
+# GET TRASH TASKS
+# -----------------------------
+
+def get_deleted_tasks(
+    session: Session,
+    workspace_id: UUID,
+    user_id: UUID,
+) -> list[Task]:
+
+    has_permission = check_workspace_permission(
+        session=session,
+        workspace_id=workspace_id,
+        user_id=user_id,
+        permission_name=Permission.VIEW_TASK,
+    )
+
+    if not has_permission:
+        raise ValueError("You do not have permission to view deleted tasks.")
+
+    return task_repository.get_deleted_tasks_by_workspace(
+        session=session,
+        workspace_id=workspace_id,
+    )
+
+
+    # -----------------------------
+# RESTORE TASK
+# -----------------------------
+
+def restore_task(
+    session: Session,
+    task_id: UUID,
+    workspace_id: UUID,
+    user_id: UUID,
+) -> Task:
+
+    try:
+        has_permission = check_workspace_permission(
+            session=session,
+            workspace_id=workspace_id,
+            user_id=user_id,
+            permission_name=Permission.DELETE_TASK,
+        )
+
+        if not has_permission:
+            raise ValueError("You do not have permission to restore tasks.")
+
+        # Find the task in Trash
+        deleted_tasks = task_repository.get_deleted_tasks_by_workspace(
+            session=session,
+            workspace_id=workspace_id,
+        )
+
+        task = next(
+            (item for item in deleted_tasks if item.task_id == task_id),
+            None,
+        )
+
+        if task is None:
+            raise ValueError("Deleted task not found.")
+
+        task_repository.restore_task_record(
+            session=session,
+            task=task,
+        )
+
+        session.commit()
+        session.refresh(task)
+
+        return task
+
+    except Exception:
+        session.rollback()
+        raise

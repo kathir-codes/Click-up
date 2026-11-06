@@ -9,23 +9,23 @@ from src.core.dependencies import get_current_user_sub
 
 from src.models.task import TaskStatus, TaskPriority
 from src.modules.user.services import get_profile
-from src.modules.task.services.task_service import create_subtask
 from src.modules.task.types import (
     TaskType,
     TaskStatusType,
     TaskPriorityType,
 )
-from src.modules.task.services import (
+from src.modules.task.services.comment_service import (
     create_task_comment,
     update_task_comment,
     delete_task_comment,
 )
-from src.modules.task.types import TaskCommentType
 from src.modules.task.services.task_service import (
     create_task,
     update_task,
     delete_task,
     assign_task,
+    create_subtask,
+    restore_task as restore_task_service,
 )
 
 
@@ -323,4 +323,63 @@ class TaskMutation:
                 due_date=subtask.due_date,
                 created_at=subtask.created_at,
                 updated_at=subtask.updated_at,
+            )
+
+
+    # -----------------------------
+    # RESTORE TASK
+    # -----------------------------
+
+    @strawberry.mutation
+    def restore_task(
+        self,
+        info: strawberry.Info,
+        task_id: str,
+        workspace_id: str,
+    ) -> TaskType:
+
+        cognito_sub = get_current_user_sub(info)
+
+        try:
+            task_uuid = UUID(task_id)
+            workspace_uuid = UUID(workspace_id)
+        except ValueError:
+            raise ValueError("Invalid task ID or workspace ID.")
+
+        with SessionLocal() as session:
+
+            profile = get_profile(
+                session=session,
+                cognito_sub=cognito_sub,
+            )
+
+            if profile is None:
+                raise ValueError("User profile not found.")
+
+            task = restore_task_service(
+                session=session,
+                task_id=task_uuid,
+                workspace_id=workspace_uuid,
+                user_id=profile.user_id,
+            )
+
+            return TaskType(
+                task_id=str(task.task_id),
+                workspace_id=str(task.workspace_id),
+                parent_task_id=(
+                    str(task.parent_task_id)
+                    if task.parent_task_id else None
+                ),
+                title=task.title,
+                description=task.description,
+                status=TaskStatusType(task.status.value),
+                priority=TaskPriorityType(task.priority.value),
+                assignee_id=(
+                    str(task.assignee_id)
+                    if task.assignee_id else None
+                ),
+                created_by=str(task.created_by),
+                due_date=task.due_date,
+                created_at=task.created_at,
+                updated_at=task.updated_at,
             )
