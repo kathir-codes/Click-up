@@ -37,6 +37,8 @@ Permissions are managed using a centralized permission system.
 - Cancel invitations.
 - Remove workspace members.
 
+
+
 ### 5. Task Management
 - Create, view, update, and delete tasks.
 - Assign tasks to workspace members.
