@@ -1,19 +1,39 @@
 import strawberry
+
 from uuid import UUID
+
 from src.modules.user.services import get_profile
+
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
+
 from src.modules.task.types import (
     TaskType,
     TaskStatusType,
     TaskPriorityType,
 )
+
+# -----------------------------
+# TASK SERVICES
+# -----------------------------
 from src.modules.task.services.task_service import (
     get_workspace_tasks,
     get_task_by_id,
+)
+
+# -----------------------------
+# SUBTASK SERVICES
+# -----------------------------
+from src.modules.task.services.subtask_service import (
     get_subtasks,
 )
-from src.modules.task.services.task_service import get_deleted_tasks
+
+# -----------------------------
+# TASK TRASH SERVICES
+# -----------------------------
+from src.modules.task.services.task_trash_service import (
+    get_deleted_tasks,
+)
 @strawberry.type
 class TaskQuery:
 

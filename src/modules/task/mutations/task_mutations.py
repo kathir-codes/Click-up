@@ -1,4 +1,3 @@
-
 import strawberry
 
 from uuid import UUID
@@ -8,26 +7,53 @@ from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
 
 from src.models.task import TaskStatus, TaskPriority
+
 from src.modules.user.services import get_profile
+
 from src.modules.task.types import (
     TaskType,
     TaskStatusType,
     TaskPriorityType,
 )
+
+# -----------------------------
+# COMMENT SERVICES
+# -----------------------------
 from src.modules.task.services.comment_service import (
     create_task_comment,
     update_task_comment,
     delete_task_comment,
 )
+
+# -----------------------------
+# TASK SERVICES
+# -----------------------------
 from src.modules.task.services.task_service import (
     create_task,
     update_task,
     delete_task,
-    assign_task,
-    create_subtask,
-    restore_task as restore_task_service,
 )
 
+# -----------------------------
+# SUBTASK SERVICES
+# -----------------------------
+from src.modules.task.services.subtask_service import (
+    create_subtask,
+)
+
+# -----------------------------
+# TASK ASSIGNMENT SERVICES
+# -----------------------------
+from src.modules.task.services.task_assignment_service import (
+    assign_task,
+)
+
+# -----------------------------
+# TASK TRASH SERVICES
+# -----------------------------
+from src.modules.task.services.task_trash_service import (
+    restore_task as restore_task_service,
+)
 
 @strawberry.type
 class TaskMutation:

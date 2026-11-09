@@ -13,8 +13,10 @@ from src.models.task import (
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
 from src.modules.authorization.service import check_workspace_permission
-from datetime import datetime, timezone
-
+from datetime import datetime
+from src.modules.workspace.services.workspace_service import (
+    check_workspace_is_active,
+)
 # -----------------------------
 # CREATE TASK
 # -----------------------------
@@ -32,6 +34,17 @@ def create_task(
 ) -> Task:
 
     try:
+        # -----------------------------
+        # CHECK WHETHER WORKSPACE IS ACTIVE
+        # -----------------------------
+        check_workspace_is_active(
+            session=session,
+            workspace_id=workspace_id,
+        )
+
+        # -----------------------------
+        # CHECK USER PERMISSION
+        # -----------------------------
         has_permission = check_workspace_permission(
             session=session,
             workspace_id=workspace_id,
@@ -40,7 +53,9 @@ def create_task(
         )
 
         if not has_permission:
-            raise ValueError("You do not have permission to create tasks.")
+            raise ValueError(
+                "You do not have permission to create tasks."
+            )
         
         # Validate assignee
         if assignee_id is not None:
@@ -101,6 +116,14 @@ def get_workspace_tasks(
     user_id: UUID,
 ) -> list[Task]:
 
+    # -----------------------------
+    # CHECK WHETHER WORKSPACE IS ACTIVE
+    # -----------------------------
+    check_workspace_is_active(
+        session=session,
+        workspace_id=workspace_id,
+    )
+
     has_permission = check_workspace_permission(
         session=session,
         workspace_id=workspace_id,
@@ -129,6 +152,14 @@ def get_task_by_id(
     workspace_id: UUID,
     user_id: UUID,
 ) -> Task:
+
+    # -----------------------------
+    # CHECK WHETHER WORKSPACE IS ACTIVE
+    # -----------------------------
+    check_workspace_is_active(
+        session=session,
+        workspace_id=workspace_id,
+    )
 
     has_permission = check_workspace_permission(
         session=session,
@@ -171,6 +202,14 @@ def update_task(
 ) -> Task:
 
     try:
+        # -----------------------------
+        # CHECK WHETHER WORKSPACE IS ACTIVE
+        # -----------------------------
+        check_workspace_is_active(
+            session=session,
+            workspace_id=workspace_id,
+        )
+
         has_permission = check_workspace_permission(
             session=session,
             workspace_id=workspace_id,
@@ -273,6 +312,14 @@ def delete_task(
 ) -> bool:
 
     try:
+        # -----------------------------
+        # CHECK WHETHER WORKSPACE IS ACTIVE
+        # -----------------------------
+        check_workspace_is_active(
+            session=session,
+            workspace_id=workspace_id,
+        )
+
         has_permission = check_workspace_permission(
             session=session,
             workspace_id=workspace_id,
@@ -307,307 +354,9 @@ def delete_task(
         raise
 
 
-# -----------------------------
-# ASSIGN TASK
-# -----------------------------
-
-def assign_task(
-    session: Session,
-    task_id: UUID,
-    workspace_id: UUID,
-    user_id: UUID,
-    assignee_id: UUID | None,
-) -> Task:
-
-    try:
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.ASSIGN_TASK,
-        )
-
-        if not has_permission:
-            raise ValueError(
-                "You do not have permission to assign tasks."
-            )
-
-        task = task_repository.get_task_by_id(
-            session=session,
-            task_id=task_id,
-            workspace_id=workspace_id,
-        )
-
-        if task is None:
-            raise ValueError("Task not found.")
-
-        if assignee_id is not None:
-            from src.models.workspace import WorkspaceMember
-
-            member = (
-                session.query(WorkspaceMember)
-                .filter(
-                    WorkspaceMember.workspace_id == workspace_id,
-                    WorkspaceMember.user_id == assignee_id,
-                )
-                .first()
-            )
-
-            if member is None:
-                raise ValueError(
-                    "Assignee is not a member of this workspace."
-                )
-
-        old_assignee_id = task.assignee_id
-
-        task = task_repository.assign_task_record(
-            session=session,
-            task=task,
-            assignee_id=assignee_id,
-        )
-
-        # Record assignee change
-        if old_assignee_id != task.assignee_id:
-            create_task_activity(
-                session=session,
-                task_id=task.task_id,
-                user_id=user_id,
-                field=TaskActivityField.ASSIGNEE,
-                old_value=(
-                    str(old_assignee_id)
-                    if old_assignee_id else None
-                ),
-                new_value=(
-                    str(task.assignee_id)
-                    if task.assignee_id else None
-                ),
-            )
-
-        session.commit()
-        session.refresh(task)
-
-        return task
-
-    except Exception:
-        session.rollback()
-        raise
 
 
-# -----------------------------
-# CREATE SUBTASK
-# -----------------------------
-
-def create_subtask(
-    session: Session,
-    parent_task_id: UUID,
-    workspace_id: UUID,
-    user_id: UUID,
-    title: str,
-    description: str | None = None,
-    status: TaskStatus = TaskStatus.TODO,
-    priority: TaskPriority = TaskPriority.MEDIUM,
-    assignee_id: UUID | None = None,
-    due_date: datetime | None = None,
-) -> Task:
-
-    try:
-        # Check permission
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.CREATE_TASK,
-        )
-
-        if not has_permission:
-            raise ValueError(
-                "You do not have permission to create subtasks."
-            )
-
-        # Find parent task
-        parent_task = task_repository.get_task_by_id(
-            session=session,
-            task_id=parent_task_id,
-            workspace_id=workspace_id,
-        )
-
-        if parent_task is None:
-            raise ValueError("Parent task not found.")
 
 
-        # Prevent nested subtasks
-        if parent_task.parent_task_id is not None:
-            raise ValueError(
-                "A subtask cannot have another subtask."
-            )
-
-        # Validate assignee
-        if assignee_id is not None:
-            from src.models.workspace import WorkspaceMember
-
-            member = (
-                session.query(WorkspaceMember)
-                .filter(
-                    WorkspaceMember.workspace_id == workspace_id,
-                    WorkspaceMember.user_id == assignee_id,
-                )
-                .first()
-            )
-
-            if member is None:
-                raise ValueError(
-                    "Assignee is not a member of this workspace."
-                )
-
-        # Create subtask
-        subtask = task_repository.create_subtask_record(
-            session=session,
-            parent_task=parent_task,
-            title=title,
-            description=description,
-            created_by=user_id,
-            status=status,
-            priority=priority,
-            assignee_id=assignee_id,
-            due_date=due_date,
-        )
-
-        # Record activity
-        create_task_activity(
-            session=session,
-            task_id=subtask.task_id,
-            user_id=user_id,
-            field=TaskActivityField.TASK_CREATED,
-            old_value=None,
-            new_value=subtask.title,
-        )
-
-        session.commit()
-        session.refresh(subtask)
-
-        return subtask
-
-    except Exception:
-        session.rollback()
-        raise
 
 
-# -----------------------------
-# GET SUBTASKS
-# -----------------------------
-
-def get_subtasks(
-    session: Session,
-    parent_task_id: UUID,
-    workspace_id: UUID,
-    user_id: UUID,
-) -> list[Task]:
-
-    has_permission = check_workspace_permission(
-        session=session,
-        workspace_id=workspace_id,
-        user_id=user_id,
-        permission_name=Permission.VIEW_TASK,
-    )
-
-    if not has_permission:
-        raise ValueError(
-            "You do not have permission to view subtasks."
-        )
-
-    # Check parent task exists
-    parent_task = task_repository.get_task_by_id(
-        session=session,
-        task_id=parent_task_id,
-        workspace_id=workspace_id,
-    )
-
-    if parent_task is None:
-        raise ValueError("Parent task not found.")
-
-    if parent_task.parent_task_id is not None:
-        raise ValueError(
-            "Subtasks cannot have their own subtasks."
-        )
-
-    return task_repository.get_subtasks_by_parent(
-        session=session,
-        parent_task_id=parent_task_id,
-        workspace_id=workspace_id,
-    )
-
-# -----------------------------
-# GET TRASH TASKS
-# -----------------------------
-
-def get_deleted_tasks(
-    session: Session,
-    workspace_id: UUID,
-    user_id: UUID,
-) -> list[Task]:
-
-    has_permission = check_workspace_permission(
-        session=session,
-        workspace_id=workspace_id,
-        user_id=user_id,
-        permission_name=Permission.VIEW_TASK,
-    )
-
-    if not has_permission:
-        raise ValueError("You do not have permission to view deleted tasks.")
-
-    return task_repository.get_deleted_tasks_by_workspace(
-        session=session,
-        workspace_id=workspace_id,
-    )
-
-
-    # -----------------------------
-# RESTORE TASK
-# -----------------------------
-
-def restore_task(
-    session: Session,
-    task_id: UUID,
-    workspace_id: UUID,
-    user_id: UUID,
-) -> Task:
-
-    try:
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.DELETE_TASK,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to restore tasks.")
-
-        # Find the task in Trash
-        deleted_tasks = task_repository.get_deleted_tasks_by_workspace(
-            session=session,
-            workspace_id=workspace_id,
-        )
-
-        task = next(
-            (item for item in deleted_tasks if item.task_id == task_id),
-            None,
-        )
-
-        if task is None:
-            raise ValueError("Deleted task not found.")
-
-        task_repository.restore_task_record(
-            session=session,
-            task=task,
-        )
-
-        session.commit()
-        session.refresh(task)
-
-        return task
-
-    except Exception:
-        session.rollback()
-        raise

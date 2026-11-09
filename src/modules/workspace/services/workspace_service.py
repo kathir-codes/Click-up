@@ -7,7 +7,7 @@ from src.common.permissions import Permission
 from src.modules.workspace.repositories import workspace_repository as repository
 from src.modules.authorization.repository import assign_permissions_to_role
 from src.modules.authorization.service import check_workspace_permission
-
+from src.modules.workspace.repositories import workspace_repository as repository
 
 # -----------------------------
 # CREATE WORKSPACE
@@ -351,3 +351,23 @@ def restore_workspace(
     except Exception:
         session.rollback()
         raise
+
+# -----------------------------
+# CHECK WHETHER WORKSPACE IS ACTIVE
+# -----------------------------
+
+def check_workspace_is_active(
+    session: Session,
+    workspace_id: UUID,
+):
+    workspace = repository.get_workspace(
+        session=session,
+        workspace_id=workspace_id,
+    )
+
+    if workspace is None:
+        raise ValueError(
+            "Workspace not found or has been deleted."
+        )
+
+    return workspace
