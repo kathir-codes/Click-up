@@ -1,15 +1,16 @@
+from uuid import UUID
 
 import strawberry
 
-from uuid import UUID
-
+from src.common.permissions import Permission
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
 from src.modules.authorization.service import check_workspace_permission
 from src.modules.invitation.services import get_workspace_invitations
-from src.modules.invitation.types import InvitationType, InvitationStatusType
-from src.common.permissions import Permission
+from src.modules.invitation.types import InvitationStatusType, InvitationType
 from src.modules.user.services import get_profile
+
+
 @strawberry.type
 class InvitationQuery:
 

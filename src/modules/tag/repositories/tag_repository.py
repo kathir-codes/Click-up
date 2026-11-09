@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 
 from src.models.tag import Tag, TaskTag
 
-
 # CREATE TAG
+
 
 def create_tag_record(
     session: Session,
@@ -28,6 +28,7 @@ def create_tag_record(
 
 # GET TAG BY NAME
 
+
 def get_tag_by_name(
     session: Session,
     workspace_id: UUID,
@@ -45,6 +46,7 @@ def get_tag_by_name(
 
 
 # GET TAG BY ID
+
 
 def get_tag_by_id(
     session: Session,
@@ -64,6 +66,7 @@ def get_tag_by_id(
 
 # GET ALL WORKSPACE TAGS
 
+
 def get_tags_by_workspace(
     session: Session,
     workspace_id: UUID,
@@ -78,6 +81,7 @@ def get_tags_by_workspace(
 
 
 # GET TASK TAG ASSIGNMENT
+
 
 def get_task_tag(
     session: Session,
@@ -98,6 +102,7 @@ def get_task_tag(
 
 
 # ASSIGN TAG TO TASK
+
 
 def assign_tag_record(
     session: Session,
@@ -121,6 +126,7 @@ def assign_tag_record(
 
 
 # REMOVE TAG FROM TASK
+
 
 def remove_tag_record(
     session: Session,

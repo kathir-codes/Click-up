@@ -1,8 +1,7 @@
-
-from datetime import datetime, timedelta, timezone
-from uuid import UUID
 import hashlib
 import secrets
+from datetime import datetime, timedelta, timezone
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -11,6 +10,9 @@ from src.modules.invitation.repositories import invitation_repository as reposit
 from src.modules.workspace.repositories import workspace_repository
 
 
+# -----------------------------
+# CREATE WORKSPACE INVITATION
+# -----------------------------
 def create_workspace_invitation(
     session: Session,
     workspace_id: UUID,
@@ -60,6 +62,9 @@ def create_workspace_invitation(
         raise
 
 
+# -----------------------------
+# GET WORKSPACE INVITATIONS
+# -----------------------------
 def get_workspace_invitations(
     session: Session,
     workspace_id: UUID,
@@ -70,6 +75,9 @@ def get_workspace_invitations(
     )
 
 
+# -----------------------------
+# GET USER INVITATIONS
+# -----------------------------
 def get_user_invitations(
     session: Session,
     email: str,
@@ -80,6 +88,9 @@ def get_user_invitations(
     )
 
 
+# -----------------------------
+# ACCEPT WORKSPACE INVITATION
+# -----------------------------
 def accept_workspace_invitation(
     session: Session,
     token: str,
@@ -106,7 +117,6 @@ def accept_workspace_invitation(
         # 4. Check invitation expiry
         if invitation.expires_at <= datetime.now(timezone.utc):
             repository.update_invitation_status(
-                session=session,
                 invitation=invitation,
                 status=InvitationStatus.EXPIRED,
             )
@@ -115,9 +125,7 @@ def accept_workspace_invitation(
 
         # 5. Verify invited email
         if invitation.email.lower() != email.lower():
-            raise ValueError(
-                "This invitation belongs to a different email address."
-            )
+            raise ValueError("This invitation belongs to a different email address.")
 
         # 6. Check existing workspace membership
         existing_member = workspace_repository.get_workspace_member(
@@ -139,7 +147,6 @@ def accept_workspace_invitation(
 
         # 8. Update invitation status
         repository.update_invitation_status(
-            session=session,
             invitation=invitation,
             status=InvitationStatus.ACCEPTED,
         )
@@ -155,6 +162,9 @@ def accept_workspace_invitation(
         raise
 
 
+# -----------------------------
+# RESEND WORKSPACE INVITATION
+# -----------------------------
 def resend_workspace_invitation(
     session: Session,
     invitation_id: UUID,
@@ -176,7 +186,6 @@ def resend_workspace_invitation(
         # 3. Check invitation expiry
         if invitation.expires_at <= datetime.now(timezone.utc):
             repository.update_invitation_status(
-                session=session,
                 invitation=invitation,
                 status=InvitationStatus.EXPIRED,
             )
@@ -194,7 +203,6 @@ def resend_workspace_invitation(
 
         # 7. Update existing invitation
         repository.update_invitation_token(
-            session=session,
             invitation=invitation,
             token_hash=token_hash,
             expires_at=expires_at,
@@ -211,7 +219,9 @@ def resend_workspace_invitation(
         raise
 
 
-
+# -----------------------------
+# CANCEL WORKSPACE INVITATION
+# -----------------------------
 def cancel_workspace_invitation(
     session: Session,
     invitation_id: UUID,
@@ -232,7 +242,6 @@ def cancel_workspace_invitation(
 
         # 3. Update invitation status
         repository.update_invitation_status(
-            session=session,
             invitation=invitation,
             status=InvitationStatus.CANCELLED,
         )
@@ -247,12 +256,16 @@ def cancel_workspace_invitation(
         session.rollback()
         raise
 
+
+# -----------------------------
+# DECLINE WORKSPACE INVITATION
+# -----------------------------
 def decline_workspace_invitation(
     session: Session,
     token: str,
     user_id: UUID,
     email: str,
-    ):
+):
     try:
         # 1. Generate token hash
         token_hash = hashlib.sha256(token.encode()).hexdigest()
@@ -273,7 +286,6 @@ def decline_workspace_invitation(
         # 4. Check invitation expiry
         if invitation.expires_at <= datetime.now(timezone.utc):
             repository.update_invitation_status(
-                session=session,
                 invitation=invitation,
                 status=InvitationStatus.EXPIRED,
             )
@@ -282,18 +294,19 @@ def decline_workspace_invitation(
 
         # 5. Verify invited email
         if invitation.email.lower() != email.lower():
-            raise ValueError(
-                "This invitation belongs to a different email address."
-            )
+            raise ValueError("This invitation belongs to a different email address.")
 
-        # 6. Update invitation status
+        # 6. Verify the authenticated user
+        if user_id is None:
+            raise ValueError("Authenticated user not found.")
+
+        # 7. Update invitation status
         repository.update_invitation_status(
-            session=session,
             invitation=invitation,
             status=InvitationStatus.DECLINED,
         )
 
-        # 7. Commit changes
+        # 8. Commit changes
         session.commit()
         session.refresh(invitation)
 

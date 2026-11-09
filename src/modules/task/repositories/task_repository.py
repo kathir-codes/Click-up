@@ -1,15 +1,14 @@
-
-from uuid import UUID
 from datetime import datetime, timezone
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.models.task import Task, TaskStatus, TaskPriority
-
+from src.models.task import Task, TaskPriority, TaskStatus
 
 # -----------------------------
 # CREATE TASK RECORD
 # -----------------------------
+
 
 def create_task_record(
     session: Session,
@@ -44,6 +43,7 @@ def create_task_record(
 # GET TASKS BY WORKSPACE
 # -----------------------------
 
+
 def get_tasks_by_workspace(
     session: Session,
     workspace_id: UUID,
@@ -63,6 +63,7 @@ def get_tasks_by_workspace(
 # -----------------------------
 # GET TASK BY ID
 # -----------------------------
+
 
 def get_task_by_id(
     session: Session,
@@ -84,6 +85,7 @@ def get_task_by_id(
 # -----------------------------
 # UPDATE TASK RECORD
 # -----------------------------
+
 
 def update_task_record(
     session: Session,
@@ -119,6 +121,7 @@ def update_task_record(
 # SOFT DELETE TASK RECORD
 # -----------------------------
 
+
 def delete_task_record(
     session: Session,
     task: Task,
@@ -136,9 +139,11 @@ def delete_task_record(
 
     session.flush()
 
+
 # -----------------------------
 # GET DELETED TASKS
 # -----------------------------
+
 
 def get_deleted_tasks_by_workspace(
     session: Session,
@@ -155,9 +160,12 @@ def get_deleted_tasks_by_workspace(
         .order_by(Task.deleted_at.desc())
         .all()
     )
+
+
 # -----------------------------
 # RESTORE TASK
 # -----------------------------
+
 
 def restore_task_record(
     session: Session,
@@ -175,9 +183,11 @@ def restore_task_record(
 
     return task
 
+
 # -----------------------------
 # ASSIGN TASK RECORD
 # -----------------------------
+
 
 def assign_task_record(
     session: Session,
@@ -195,6 +205,7 @@ def assign_task_record(
 # -----------------------------
 # CREATE SUBTASK RECORD
 # -----------------------------
+
 
 def create_subtask_record(
     session: Session,
@@ -229,6 +240,7 @@ def create_subtask_record(
 # -----------------------------
 # GET SUBTASKS BY PARENT
 # -----------------------------
+
 
 def get_subtasks_by_parent(
     session: Session,

@@ -3,18 +3,14 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
-from src.models.task import (
-    TaskActivity,
-    TaskActivityField,
-)
-
-from src.modules.task.repositories import activity_repository
+from src.models.task import TaskActivity, TaskActivityField
 from src.modules.authorization.service import check_workspace_permission
-from src.modules.task.repositories import task_repository
+from src.modules.task.repositories import activity_repository, task_repository
 
 # -----------------------------
 # CREATE TASK ACTIVITY
 # -----------------------------
+
 
 def create_task_activity(
     session: Session,
@@ -39,6 +35,7 @@ def create_task_activity(
 # GET TASK ACTIVITIES
 # -----------------------------
 
+
 def get_task_activities(
     session: Session,
     task_id: UUID,
@@ -54,9 +51,7 @@ def get_task_activities(
     )
 
     if not has_permission:
-        raise ValueError(
-            "You do not have permission to view task activities."
-        )
+        raise ValueError("You do not have permission to view task activities.")
 
     # Verify task belongs to workspace
 

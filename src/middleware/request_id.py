@@ -9,11 +9,10 @@ async def request_id_middleware(
 ):
     request_id = str(uuid.uuid4())
 
-    request.state.request_id = request_id #We used getattr() to access the Request ID from the shared request.state object.
+    request.state.request_id = request_id  # We used getattr() to access the Request ID from the shared request.state object.
 
     response = await call_next(request)
 
     response.headers["X-Request-ID"] = request_id
 
     return response
-

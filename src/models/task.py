@@ -1,4 +1,3 @@
-
 import enum
 from datetime import datetime
 from uuid import UUID, uuid4
@@ -116,7 +115,6 @@ class Task(Base):
         DateTime(timezone=True),
         nullable=True,
     )
-
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

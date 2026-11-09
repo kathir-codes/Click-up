@@ -4,16 +4,14 @@ from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
 from src.models.task import Task
-from src.modules.task.repositories import task_repository
 from src.modules.authorization.service import check_workspace_permission
-from src.modules.workspace.services.workspace_service import (
-    check_workspace_is_active,
-)
-
+from src.modules.task.repositories import task_repository
+from src.modules.workspace.services.workspace_service import check_workspace_is_active
 
 # -----------------------------
 # GET TRASH TASKS
 # -----------------------------
+
 
 def get_deleted_tasks(
     session: Session,
@@ -45,10 +43,10 @@ def get_deleted_tasks(
     )
 
 
-
 # -----------------------------
 # RESTORE TASK
 # -----------------------------
+
 
 def restore_task(
     session: Session,

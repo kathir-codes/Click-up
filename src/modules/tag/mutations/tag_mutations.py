@@ -1,19 +1,16 @@
-import strawberry
-
 from uuid import UUID
+
+import strawberry
 
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-
-from src.modules.user.services import get_profile
-
-from src.modules.tag.types import TagType
-
 from src.modules.tag.services import (
-    create_tag,
     assign_tag_to_task,
+    create_tag,
     remove_tag_from_task,
 )
+from src.modules.tag.types import TagType
+from src.modules.user.services import get_profile
 
 
 @strawberry.type
@@ -81,9 +78,7 @@ class TagMutation:
             workspace_uuid = UUID(workspace_id)
 
         except ValueError:
-            raise ValueError(
-                "Invalid task, tag, or workspace ID."
-            )
+            raise ValueError("Invalid task, tag, or workspace ID.")
 
         with SessionLocal() as session:
 
@@ -130,9 +125,7 @@ class TagMutation:
             workspace_uuid = UUID(workspace_id)
 
         except ValueError:
-            raise ValueError(
-                "Invalid task, tag, or workspace ID."
-            )
+            raise ValueError("Invalid task, tag, or workspace ID.")
 
         with SessionLocal() as session:
 

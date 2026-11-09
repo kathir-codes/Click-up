@@ -1,39 +1,32 @@
 import logging
+
 import strawberry
 
 from src.exceptions.graphql_error_handler import CustomSchema
+from src.modules.auth.mutations import AuthMutation
 
 # Auth
 from src.modules.auth.queries import UserQuery as AuthUserQuery
-from src.modules.auth.mutations import AuthMutation
-
-# User
-from src.modules.user.queries import UserQuery
-from src.modules.user.mutations import UserMutation
-
-# Workspace
-from src.modules.workspace.queries import WorkspaceQuery
-from src.modules.workspace.mutations import WorkspaceMutation
+from src.modules.invitation.mutations import InvitationMutation
 
 # Invitation
 from src.modules.invitation.queries import InvitationQuery
-from src.modules.invitation.mutations import InvitationMutation
-
-# Task
-from src.modules.task.queries import (
-    TaskQuery,
-    TaskCommentQuery,
-    TaskActivityQuery,
-)
-from src.modules.task.mutations import (
-    TaskMutation,
-    TaskCommentMutation,
-)
+from src.modules.tag.mutations import TagMutation
 
 # Tag
 from src.modules.tag.queries import TagQuery
-from src.modules.tag.mutations import TagMutation
+from src.modules.task.mutations import TaskCommentMutation, TaskMutation
 
+# Task
+from src.modules.task.queries import TaskActivityQuery, TaskCommentQuery, TaskQuery
+from src.modules.user.mutations import UserMutation
+
+# User
+from src.modules.user.queries import UserQuery
+from src.modules.workspace.mutations import WorkspaceMutation
+
+# Workspace
+from src.modules.workspace.queries import WorkspaceQuery
 
 logger = logging.getLogger(__name__)
 

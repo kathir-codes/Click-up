@@ -1,25 +1,19 @@
-
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
-from src.models.task import (
-    Task,
-    TaskStatus,
-    TaskPriority,
-    TaskActivityField,
-)
+from src.models.task import Task, TaskActivityField, TaskPriority, TaskStatus
+from src.modules.authorization.service import check_workspace_permission
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
-from src.modules.authorization.service import check_workspace_permission
-from datetime import datetime
-from src.modules.workspace.services.workspace_service import (
-    check_workspace_is_active,
-)
+from src.modules.workspace.services.workspace_service import check_workspace_is_active
+
 # -----------------------------
 # CREATE TASK
 # -----------------------------
+
 
 def create_task(
     session: Session,
@@ -53,10 +47,8 @@ def create_task(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to create tasks."
-            )
-        
+            raise ValueError("You do not have permission to create tasks.")
+
         # Validate assignee
         if assignee_id is not None:
             from src.models.workspace import WorkspaceMember
@@ -71,9 +63,7 @@ def create_task(
             )
 
             if member is None:
-                raise ValueError(
-                    "Assignee is not a member of this workspace."
-                )
+                raise ValueError("Assignee is not a member of this workspace.")
 
         task = task_repository.create_task_record(
             session=session,
@@ -110,6 +100,7 @@ def create_task(
 # GET WORKSPACE TASKS
 # -----------------------------
 
+
 def get_workspace_tasks(
     session: Session,
     workspace_id: UUID,
@@ -132,9 +123,7 @@ def get_workspace_tasks(
     )
 
     if not has_permission:
-        raise ValueError(
-            "You do not have permission to view workspace tasks."
-        )
+        raise ValueError("You do not have permission to view workspace tasks.")
 
     return task_repository.get_tasks_by_workspace(
         session=session,
@@ -145,6 +134,7 @@ def get_workspace_tasks(
 # -----------------------------
 # GET TASK BY ID
 # -----------------------------
+
 
 def get_task_by_id(
     session: Session,
@@ -169,9 +159,7 @@ def get_task_by_id(
     )
 
     if not has_permission:
-        raise ValueError(
-            "You do not have permission to view this task."
-        )
+        raise ValueError("You do not have permission to view this task.")
 
     task = task_repository.get_task_by_id(
         session=session,
@@ -188,6 +176,7 @@ def get_task_by_id(
 # -----------------------------
 # UPDATE TASK
 # -----------------------------
+
 
 def update_task(
     session: Session,
@@ -218,9 +207,7 @@ def update_task(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to update tasks."
-            )
+            raise ValueError("You do not have permission to update tasks.")
 
         task = task_repository.get_task_by_id(
             session=session,
@@ -304,6 +291,7 @@ def update_task(
 # DELETE TASK
 # -----------------------------
 
+
 def delete_task(
     session: Session,
     task_id: UUID,
@@ -328,9 +316,7 @@ def delete_task(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to delete tasks."
-            )
+            raise ValueError("You do not have permission to delete tasks.")
 
         task = task_repository.get_task_by_id(
             session=session,
@@ -352,11 +338,3 @@ def delete_task(
     except Exception:
         session.rollback()
         raise
-
-
-
-
-
-
-
-

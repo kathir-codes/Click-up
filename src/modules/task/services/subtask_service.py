@@ -1,25 +1,19 @@
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
-from src.models.task import (
-    Task,
-    TaskStatus,
-    TaskPriority,
-    TaskActivityField,
-)
+from src.models.task import Task, TaskActivityField, TaskPriority, TaskStatus
+from src.modules.authorization.service import check_workspace_permission
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
-from src.modules.authorization.service import check_workspace_permission
-from src.modules.workspace.services.workspace_service import (
-    check_workspace_is_active,
-)
+from src.modules.workspace.services.workspace_service import check_workspace_is_active
 
 # -----------------------------
 # CREATE SUBTASK
 # -----------------------------
+
 
 def create_subtask(
     session: Session,
@@ -52,9 +46,7 @@ def create_subtask(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to create subtasks."
-            )
+            raise ValueError("You do not have permission to create subtasks.")
 
         # Find parent task
         parent_task = task_repository.get_task_by_id(
@@ -66,12 +58,9 @@ def create_subtask(
         if parent_task is None:
             raise ValueError("Parent task not found.")
 
-
         # Prevent nested subtasks
         if parent_task.parent_task_id is not None:
-            raise ValueError(
-                "A subtask cannot have another subtask."
-            )
+            raise ValueError("A subtask cannot have another subtask.")
 
         # Validate assignee
         if assignee_id is not None:
@@ -87,9 +76,7 @@ def create_subtask(
             )
 
             if member is None:
-                raise ValueError(
-                    "Assignee is not a member of this workspace."
-                )
+                raise ValueError("Assignee is not a member of this workspace.")
 
         # Create subtask
         subtask = task_repository.create_subtask_record(
@@ -123,9 +110,11 @@ def create_subtask(
         session.rollback()
         raise
 
+
 # -----------------------------
 # GET SUBTASKS
 # -----------------------------
+
 
 def get_subtasks(
     session: Session,
@@ -150,9 +139,7 @@ def get_subtasks(
     )
 
     if not has_permission:
-        raise ValueError(
-            "You do not have permission to view subtasks."
-        )
+        raise ValueError("You do not have permission to view subtasks.")
 
     # Check parent task exists
     parent_task = task_repository.get_task_by_id(
@@ -165,9 +152,7 @@ def get_subtasks(
         raise ValueError("Parent task not found.")
 
     if parent_task.parent_task_id is not None:
-        raise ValueError(
-            "Subtasks cannot have their own subtasks."
-        )
+        raise ValueError("Subtasks cannot have their own subtasks.")
 
     return task_repository.get_subtasks_by_parent(
         session=session,

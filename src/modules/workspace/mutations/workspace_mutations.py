@@ -1,19 +1,19 @@
-import strawberry
-import logging
-
 from uuid import UUID
+
+import strawberry
 
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
 from src.modules.user.services import get_profile
 from src.modules.workspace.services import (
     create_workspace,
-    update_workspace,
     delete_workspace,
-    restore_workspace as restore_workspace_service,
     remove_workspace_member,
 )
-
+from src.modules.workspace.services import (
+    restore_workspace as restore_workspace_service,
+)
+from src.modules.workspace.services import update_workspace
 from src.modules.workspace.types import WorkspaceType
 
 
@@ -147,7 +147,6 @@ class WorkspaceMutation:
                 raise ValueError("Workspace not found.")
 
             return True
-
 
     # -----------------------------
     # REMOVE WORKSPACE MEMBER

@@ -1,7 +1,9 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine # Creates the SQLAlchemy engine used to communicate with the database.
+from sqlalchemy import (  # Creates the SQLAlchemy engine used to communicate with the database.
+    create_engine,
+)
 from sqlalchemy.orm import sessionmaker
 
 load_dotenv()

@@ -1,8 +1,7 @@
-
-import os
 import base64
 import hashlib
 import hmac
+import os
 
 import boto3
 from dotenv import load_dotenv

@@ -2,15 +2,12 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.models.task import (
-    TaskActivity,
-    TaskActivityField,
-)
-
+from src.models.task import TaskActivity, TaskActivityField
 
 # -----------------------------
 # CREATE TASK ACTIVITY
 # -----------------------------
+
 
 def create_task_activity(
     session: Session,
@@ -38,6 +35,7 @@ def create_task_activity(
 # -----------------------------
 # GET TASK ACTIVITIES
 # -----------------------------
+
 
 def get_task_activities(
     session: Session,

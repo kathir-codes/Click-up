@@ -1,16 +1,17 @@
-
 import strawberry
 
 from src.core.database import SessionLocal
-from src.modules.user.types import UserProfileType
 from src.core.dependencies import get_current_user_sub
 from src.modules.user.services import get_profile
+from src.modules.user.types import UserProfileType
+
+
 @strawberry.type
 class UserQuery:
 
     @strawberry.field
     def my_profile(self, info: strawberry.Info) -> UserProfileType:
-        cognito_sub =  get_current_user_sub(info)
+        cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
             profile = get_profile(
@@ -29,5 +30,3 @@ class UserQuery:
                 created_at=profile.created_at,
                 updated_at=profile.updated_at,
             )
-
-   

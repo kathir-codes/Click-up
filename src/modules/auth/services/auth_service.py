@@ -1,16 +1,18 @@
+from botocore.exceptions import ClientError
+
 from src.core.cognito import (
-    cognito,
-    COGNITO_USER_POOL_ID,
     COGNITO_APP_CLIENT_ID,
     COGNITO_APP_CLIENT_SECRET,
+    COGNITO_USER_POOL_ID,
+    cognito,
     get_client_params,
     get_secret_hash,
 )
-from src.core.database import SessionLocal
-
-from src.modules.user.services import sync_user_profile
 from src.core.cognito_errors import handle_cognito_error
-from botocore.exceptions import ClientError
+from src.core.database import SessionLocal
+from src.modules.user.services import sync_user_profile
+
+
 def sign_up(name: str, email: str, password: str):
     username = email.strip().lower()
 
@@ -29,7 +31,7 @@ def sign_up(name: str, email: str, password: str):
 
     except ClientError as error:
         handle_cognito_error(error)
-        
+
     return "Signup successful. Check your email for a verification code."
 
 
@@ -52,8 +54,7 @@ def confirm_sign_up(email: str, confirmation_code: str):
     )
 
     attributes = {
-        item["Name"]: item["Value"]
-        for item in user_response.get("UserAttributes", [])
+        item["Name"]: item["Value"] for item in user_response.get("UserAttributes", [])
     }
 
     cognito_sub = attributes.get("sub")
@@ -92,8 +93,6 @@ def resend_confirmation_code(email: str):
     return "A new verification code has been requested."
 
 
-
-
 def sign_in(email: str, password: str):
     username = email.strip().lower()
 
@@ -105,9 +104,6 @@ def sign_in(email: str, password: str):
     if COGNITO_APP_CLIENT_SECRET:
         auth_parameters["SECRET_HASH"] = get_secret_hash(username)
 
-
-
-    
     try:
         response = cognito.initiate_auth(
             ClientId=COGNITO_APP_CLIENT_ID,
@@ -126,10 +122,6 @@ def sign_in(email: str, password: str):
     return result
 
 
-
-
-
-
 def refresh_tokens(refresh_token: str):
     params = {
         "RefreshToken": refresh_token,
@@ -146,5 +138,3 @@ def refresh_tokens(refresh_token: str):
         handle_cognito_error(error)
 
     return response["AuthenticationResult"]
-
-

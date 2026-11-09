@@ -1,12 +1,13 @@
+from uuid import UUID
 
 import strawberry
-from uuid import UUID
 
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
 from src.modules.task.services import get_task_comments
 from src.modules.task.types import TaskCommentType
 from src.modules.user.services import get_profile
+
 
 @strawberry.type
 class TaskCommentQuery:
@@ -22,8 +23,6 @@ class TaskCommentQuery:
 
         try:
             cognito_sub = get_current_user_sub(info)
-
-            from src.modules.user.services import get_profile
 
             user = get_profile(
                 session=session,

@@ -1,15 +1,10 @@
 import jwt
 from jwt import PyJWKClient
 
-from src.core.cognito import (
-    AWS_REGION,
-    COGNITO_USER_POOL_ID,
-    COGNITO_APP_CLIENT_ID,
-)
+from src.core.cognito import AWS_REGION, COGNITO_APP_CLIENT_ID, COGNITO_USER_POOL_ID
 
 COGNITO_ISSUER = (
-    f"https://cognito-idp.{AWS_REGION}.amazonaws.com/"
-    f"{COGNITO_USER_POOL_ID}"
+    f"https://cognito-idp.{AWS_REGION}.amazonaws.com/" f"{COGNITO_USER_POOL_ID}"
 )
 
 JWKS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
@@ -45,7 +40,6 @@ def validate_access_token(token: str) -> dict:
         raise ValueError("Token was issued to an unexpected app client.")
 
     return claims
-
 
 
 def validate_id_token(token: str) -> dict:

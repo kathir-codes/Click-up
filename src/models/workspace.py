@@ -10,7 +10,9 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
+
 from src.db.base import Base
+
 
 class Workspace(Base):
     __tablename__ = "workspaces"
@@ -37,8 +39,8 @@ class Workspace(Base):
     )
 
     created_by: Mapped[UUID] = mapped_column(
-    ForeignKey("users.user_id"),
-    nullable=False,
+        ForeignKey("users.user_id"),
+        nullable=False,
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -55,8 +57,8 @@ class Workspace(Base):
     )
 
     deleted_at: Mapped[datetime | None] = mapped_column(
-    DateTime(timezone=True),
-    nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
 

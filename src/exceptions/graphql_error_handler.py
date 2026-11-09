@@ -1,20 +1,16 @@
-
 import logging
-import strawberry
 
+import strawberry
 from fastapi import Request
+from graphql import GraphQLError
 from strawberry.fastapi import GraphQLRouter
 from strawberry.http import GraphQLHTTPResponse
-from strawberry.types import ExecutionResult, ExecutionContext
-from graphql import GraphQLError
-
+from strawberry.types import ExecutionContext, ExecutionResult
 
 logger = logging.getLogger(__name__)
 
 
-def log_graphql_errors(
-    errors: list[GraphQLError]
-) -> None:
+def log_graphql_errors(errors: list[GraphQLError]) -> None:
     for error in errors:
         original_error = error.original_error
 

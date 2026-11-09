@@ -1,24 +1,18 @@
-import strawberry
-
 from uuid import UUID
 
+import strawberry
+
+from src.common.permissions import Permission
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-from src.common.permissions import Permission
+from src.modules.authorization.service import check_workspace_permission
+from src.modules.user.services import get_profile
 from src.modules.workspace.services import (
-    get_user_workspaces,
     get_user_workspace,
+    get_user_workspaces,
     get_workspace_members,
 )
-from src.modules.user.services import get_profile
-
-from src.modules.workspace.types import (
-    WorkspaceType,
-    WorkspaceMemberType,
-)
-from src.modules.authorization.service import check_workspace_permission
-
-
+from src.modules.workspace.types import WorkspaceMemberType, WorkspaceType
 
 
 @strawberry.type
@@ -105,7 +99,6 @@ class WorkspaceQuery:
                 description=workspace.description,
             )
 
-
     # -----------------------------
     # GET WORKSPACE MEMBERS
     # -----------------------------
@@ -143,9 +136,7 @@ class WorkspaceQuery:
             )
 
             if not has_permission:
-                raise ValueError(
-                    "You don't have permission to view workspace members."
-                )
+                raise ValueError("You don't have permission to view workspace members.")
 
             members = get_workspace_members(
                 session=session,

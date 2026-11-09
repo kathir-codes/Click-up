@@ -1,14 +1,10 @@
-
 from src.common.permissions import Permission
-
 
 # ==================== Owner Role Permissions ====================
 # Owner receives all permissions except CREATE_WORKSPACE.
 
 ROLE_PERMISSIONS = {
-
     "Owner": set(Permission),
-    
     # ==================== Admin Role Permissions ====================
     "Admin": {
         Permission.UPDATE_WORKSPACE,
@@ -34,7 +30,6 @@ ROLE_PERMISSIONS = {
         Permission.DELETE_COMMENT,
         Permission.VIEW_TASK_ACTIVITY,
     },
-
     # ==================== Member Role Permissions ====================
     "Member": {
         Permission.CREATE_TASK,

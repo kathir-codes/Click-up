@@ -1,20 +1,16 @@
+from uuid import UUID
 
 import strawberry
 
-from uuid import UUID
-
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-
-from src.modules.user.services import get_profile
-
-from src.modules.task.types import TaskCommentType
-
 from src.modules.task.services import (
     create_task_comment,
-    update_task_comment,
     delete_task_comment,
+    update_task_comment,
 )
+from src.modules.task.types import TaskCommentType
+from src.modules.user.services import get_profile
 
 
 @strawberry.type
@@ -89,9 +85,7 @@ class TaskCommentMutation:
             task_uuid = UUID(task_id)
             workspace_uuid = UUID(workspace_id)
         except ValueError:
-            raise ValueError(
-                "Invalid comment, task, or workspace ID."
-            )
+            raise ValueError("Invalid comment, task, or workspace ID.")
 
         with SessionLocal() as session:
 
@@ -141,9 +135,7 @@ class TaskCommentMutation:
             task_uuid = UUID(task_id)
             workspace_uuid = UUID(workspace_id)
         except ValueError:
-            raise ValueError(
-                "Invalid comment, task, or workspace ID."
-            )
+            raise ValueError("Invalid comment, task, or workspace ID.")
 
         with SessionLocal() as session:
 

@@ -1,39 +1,28 @@
-import strawberry
-
 from uuid import UUID
 
-from src.modules.user.services import get_profile
+import strawberry
 
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
 
-from src.modules.task.types import (
-    TaskType,
-    TaskStatusType,
-    TaskPriorityType,
-)
+# -----------------------------
+# SUBTASK SERVICES
+# -----------------------------
+from src.modules.task.services.subtask_service import get_subtasks
 
 # -----------------------------
 # TASK SERVICES
 # -----------------------------
-from src.modules.task.services.task_service import (
-    get_workspace_tasks,
-    get_task_by_id,
-)
-
-# -----------------------------
-# SUBTASK SERVICES
-# -----------------------------
-from src.modules.task.services.subtask_service import (
-    get_subtasks,
-)
+from src.modules.task.services.task_service import get_task_by_id, get_workspace_tasks
 
 # -----------------------------
 # TASK TRASH SERVICES
 # -----------------------------
-from src.modules.task.services.task_trash_service import (
-    get_deleted_tasks,
-)
+from src.modules.task.services.task_trash_service import get_deleted_tasks
+from src.modules.task.types import TaskPriorityType, TaskStatusType, TaskType
+from src.modules.user.services import get_profile
+
+
 @strawberry.type
 class TaskQuery:
 
@@ -72,17 +61,13 @@ class TaskQuery:
                     task_id=str(task.task_id),
                     workspace_id=str(task.workspace_id),
                     parent_task_id=(
-                        str(task.parent_task_id)
-                        if task.parent_task_id else None
+                        str(task.parent_task_id) if task.parent_task_id else None
                     ),
                     title=task.title,
                     description=task.description,
                     status=TaskStatusType(task.status.value),
                     priority=TaskPriorityType(task.priority.value),
-                    assignee_id=(
-                        str(task.assignee_id)
-                        if task.assignee_id else None
-                    ),
+                    assignee_id=(str(task.assignee_id) if task.assignee_id else None),
                     created_by=str(task.created_by),
                     due_date=task.due_date,
                     created_at=task.created_at,
@@ -128,17 +113,13 @@ class TaskQuery:
                 task_id=str(task.task_id),
                 workspace_id=str(task.workspace_id),
                 parent_task_id=(
-                    str(task.parent_task_id)
-                    if task.parent_task_id else None
+                    str(task.parent_task_id) if task.parent_task_id else None
                 ),
                 title=task.title,
                 description=task.description,
                 status=TaskStatusType(task.status.value),
                 priority=TaskPriorityType(task.priority.value),
-                assignee_id=(
-                    str(task.assignee_id)
-                    if task.assignee_id else None
-                ),
+                assignee_id=(str(task.assignee_id) if task.assignee_id else None),
                 created_by=str(task.created_by),
                 due_date=task.due_date,
                 created_at=task.created_at,
@@ -164,9 +145,7 @@ class TaskQuery:
             workspace_uuid = UUID(workspace_id)
 
         except ValueError:
-            raise ValueError(
-                "Invalid parent task ID or workspace ID."
-            )
+            raise ValueError("Invalid parent task ID or workspace ID.")
 
         with SessionLocal() as session:
 
@@ -194,10 +173,7 @@ class TaskQuery:
                     description=task.description,
                     status=TaskStatusType(task.status.value),
                     priority=TaskPriorityType(task.priority.value),
-                    assignee_id=(
-                        str(task.assignee_id)
-                        if task.assignee_id else None
-                    ),
+                    assignee_id=(str(task.assignee_id) if task.assignee_id else None),
                     created_by=str(task.created_by),
                     due_date=task.due_date,
                     created_at=task.created_at,
@@ -245,17 +221,13 @@ class TaskQuery:
                     task_id=str(task.task_id),
                     workspace_id=str(task.workspace_id),
                     parent_task_id=(
-                        str(task.parent_task_id)
-                        if task.parent_task_id else None
+                        str(task.parent_task_id) if task.parent_task_id else None
                     ),
                     title=task.title,
                     description=task.description,
                     status=TaskStatusType(task.status.value),
                     priority=TaskPriorityType(task.priority.value),
-                    assignee_id=(
-                        str(task.assignee_id)
-                        if task.assignee_id else None
-                    ),
+                    assignee_id=(str(task.assignee_id) if task.assignee_id else None),
                     created_by=str(task.created_by),
                     due_date=task.due_date,
                     created_at=task.created_at,

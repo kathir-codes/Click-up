@@ -1,14 +1,12 @@
-import strawberry
-
 from uuid import UUID
+
+import strawberry
 
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-
-from src.modules.user.services import get_profile
-
-from src.modules.tag.types import TagType
 from src.modules.tag.services import get_workspace_tags
+from src.modules.tag.types import TagType
+from src.modules.user.services import get_profile
 
 
 @strawberry.type

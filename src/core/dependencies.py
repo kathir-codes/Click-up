@@ -1,9 +1,13 @@
+"""Authentication dependencies for GraphQL resolvers."""
 
 from strawberry.types import Info
 
 from src.core.jwt import validate_access_token
 
 
+# -----------------------------
+# GET CURRENT AUTHENTICATED USER
+# -----------------------------
 def get_current_user(info: Info) -> dict:
     """Validate the access token and return Cognito user claims."""
 
@@ -19,12 +23,15 @@ def get_current_user(info: Info) -> dict:
 
     try:
         claims = validate_access_token(token)
-    except Exception:
-        raise ValueError("Invalid or expired access token.") 
-    
+    except Exception as exc:
+        raise ValueError("Invalid or expired access token.") from exc
+
     return claims
 
 
+# -----------------------------
+# GET CURRENT USER COGNITO SUB
+# -----------------------------
 def get_current_user_sub(info: Info) -> str:
     """Return the authenticated user's Cognito sub."""
 

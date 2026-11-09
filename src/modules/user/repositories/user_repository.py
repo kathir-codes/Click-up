@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -15,17 +14,13 @@ def create_or_update_user_profile(
 
     try:
         # Check whether this Cognito user already exists.
-        user = session.scalar(
-            select(User).where(User.cognito_sub == cognito_sub)
-        )
+        user = session.scalar(select(User).where(User.cognito_sub == cognito_sub))
 
         if user is not None:
             raise ValueError("User already exists.")
 
         # Check whether this email is already registered.
-        existing_email = session.scalar(
-            select(User).where(User.email == email)
-        )
+        existing_email = session.scalar(select(User).where(User.email == email))
 
         if existing_email is not None:
             raise ValueError("Email is already registered.")

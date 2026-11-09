@@ -1,14 +1,13 @@
-
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.models.task import TaskComment
 
-
 # -----------------------------
 # CREATE COMMENT RECORD
 # -----------------------------
+
 
 def create_comment_record(
     session: Session,
@@ -33,6 +32,7 @@ def create_comment_record(
 # GET COMMENTS BY TASK
 # -----------------------------
 
+
 def get_comments_by_task(
     session: Session,
     task_id: UUID,
@@ -49,6 +49,7 @@ def get_comments_by_task(
 # -----------------------------
 # GET COMMENT BY ID
 # -----------------------------
+
 
 def get_comment_by_id(
     session: Session,
@@ -70,6 +71,7 @@ def get_comment_by_id(
 # UPDATE COMMENT RECORD
 # -----------------------------
 
+
 def update_comment_record(
     session: Session,
     comment: TaskComment,
@@ -86,6 +88,7 @@ def update_comment_record(
 # -----------------------------
 # DELETE COMMENT RECORD
 # -----------------------------
+
 
 def delete_comment_record(
     session: Session,

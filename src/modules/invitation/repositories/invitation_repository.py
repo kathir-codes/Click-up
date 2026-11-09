@@ -1,4 +1,3 @@
-
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -35,11 +34,7 @@ def get_invitation_by_token_hash(
     session: Session,
     token_hash: str,
 ) -> Invitation | None:
-    return (
-        session.query(Invitation)
-        .filter(Invitation.token_hash == token_hash)
-        .first()
-    )
+    return session.query(Invitation).filter(Invitation.token_hash == token_hash).first()
 
 
 def get_workspace_invitations(
@@ -66,8 +61,10 @@ def get_user_invitations(
     )
 
 
+# -----------------------------
+# UPDATE INVITATION STATUS
+# -----------------------------
 def update_invitation_status(
-    session: Session,
     invitation: Invitation,
     status: InvitationStatus,
 ):
@@ -78,9 +75,11 @@ def update_invitation_status(
 
     return invitation
 
-# This function updates the existing invitation's token hash and expiry date.
+
+# -----------------------------
+# UPDATE INVITATION TOKEN
+# -----------------------------
 def update_invitation_token(
-    session: Session,
     invitation: Invitation,
     token_hash: str,
     expires_at: datetime,

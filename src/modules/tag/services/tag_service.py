@@ -1,24 +1,18 @@
-
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
 from src.models.task import TaskActivityField
-
-from src.modules.authorization.service import (
-    check_workspace_permission,
-)
-
+from src.modules.authorization.service import check_workspace_permission
+from src.modules.tag.repositories import tag_repository
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
-
-from src.modules.tag.repositories import tag_repository
-
 
 # -----------------------------
 # CREATE TAG
 # -----------------------------
+
 
 def create_tag(
     session: Session,
@@ -36,9 +30,7 @@ def create_tag(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to create tags."
-            )
+            raise ValueError("You do not have permission to create tags.")
 
         name = name.strip()
 
@@ -46,9 +38,7 @@ def create_tag(
             raise ValueError("Tag name cannot be empty.")
 
         if len(name) > 100:
-            raise ValueError(
-                "Tag name cannot exceed 100 characters."
-            )
+            raise ValueError("Tag name cannot exceed 100 characters.")
 
         existing_tag = tag_repository.get_tag_by_name(
             session=session,
@@ -57,9 +47,7 @@ def create_tag(
         )
 
         if existing_tag:
-            raise ValueError(
-                "A tag with this name already exists in this workspace."
-            )
+            raise ValueError("A tag with this name already exists in this workspace.")
 
         tag = tag_repository.create_tag_record(
             session=session,
@@ -82,6 +70,7 @@ def create_tag(
 # GET ALL WORKSPACE TAGS
 # -----------------------------
 
+
 def get_workspace_tags(
     session: Session,
     workspace_id: UUID,
@@ -96,9 +85,7 @@ def get_workspace_tags(
     )
 
     if not has_permission:
-        raise ValueError(
-            "You do not have permission to view workspace tags."
-        )
+        raise ValueError("You do not have permission to view workspace tags.")
 
     return tag_repository.get_tags_by_workspace(
         session=session,
@@ -109,6 +96,7 @@ def get_workspace_tags(
 # -----------------------------
 # ASSIGN TAG TO TASK
 # -----------------------------
+
 
 def assign_tag_to_task(
     session: Session,
@@ -127,9 +115,7 @@ def assign_tag_to_task(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to manage task tags."
-            )
+            raise ValueError("You do not have permission to manage task tags.")
 
         # Check task belongs to workspace
         task = task_repository.get_task_by_id(
@@ -149,9 +135,7 @@ def assign_tag_to_task(
         )
 
         if tag is None:
-            raise ValueError(
-                "Tag not found in this workspace."
-            )
+            raise ValueError("Tag not found in this workspace.")
 
         # Check duplicate assignment
         existing_assignment = tag_repository.get_task_tag(
@@ -162,9 +146,7 @@ def assign_tag_to_task(
         )
 
         if existing_assignment:
-            raise ValueError(
-                "Tag is already assigned to this task."
-            )
+            raise ValueError("Tag is already assigned to this task.")
 
         tag_repository.assign_tag_record(
             session=session,
@@ -197,6 +179,7 @@ def assign_tag_to_task(
 # REMOVE TAG FROM TASK
 # -----------------------------
 
+
 def remove_tag_from_task(
     session: Session,
     task_id: UUID,
@@ -214,9 +197,7 @@ def remove_tag_from_task(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to manage task tags."
-            )
+            raise ValueError("You do not have permission to manage task tags.")
 
         # Check task belongs to workspace
         task = task_repository.get_task_by_id(
@@ -237,9 +218,7 @@ def remove_tag_from_task(
         )
 
         if task_tag is None:
-            raise ValueError(
-                "This tag is not assigned to the task."
-            )
+            raise ValueError("This tag is not assigned to the task.")
 
         # Get tag details before removing assignment
         tag = tag_repository.get_tag_by_id(
@@ -249,9 +228,7 @@ def remove_tag_from_task(
         )
 
         if tag is None:
-            raise ValueError(
-                "Tag not found in this workspace."
-            )
+            raise ValueError("Tag not found in this workspace.")
 
         tag_repository.remove_tag_record(
             session=session,

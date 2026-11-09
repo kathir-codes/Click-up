@@ -1,10 +1,11 @@
-
 import strawberry
 
 from src.core.database import SessionLocal
-from src.modules.user.types import UserProfileType
-from src.core.dependencies import get_current_user_sub  
+from src.core.dependencies import get_current_user_sub
 from src.modules.user.services import update_profile
+from src.modules.user.types import UserProfileType
+
+
 @strawberry.type
 class UserMutation:
 
@@ -37,4 +38,3 @@ class UserMutation:
                 created_at=profile.created_at,
                 updated_at=profile.updated_at,
             )
-    

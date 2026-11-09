@@ -1,7 +1,7 @@
 import enum
-import strawberry
-
 from datetime import datetime
+
+import strawberry
 
 
 @strawberry.enum

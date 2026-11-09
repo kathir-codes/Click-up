@@ -4,16 +4,15 @@ from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
 from src.models.task import Task, TaskActivityField
+from src.modules.authorization.service import check_workspace_permission
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
-from src.modules.authorization.service import check_workspace_permission
-from src.modules.workspace.services.workspace_service import (
-    check_workspace_is_active,
-)
+from src.modules.workspace.services.workspace_service import check_workspace_is_active
 
 # -----------------------------
 # ASSIGN TASK
 # -----------------------------
+
 
 def assign_task(
     session: Session,
@@ -40,9 +39,7 @@ def assign_task(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to assign tasks."
-            )
+            raise ValueError("You do not have permission to assign tasks.")
 
         task = task_repository.get_task_by_id(
             session=session,
@@ -66,9 +63,7 @@ def assign_task(
             )
 
             if member is None:
-                raise ValueError(
-                    "Assignee is not a member of this workspace."
-                )
+                raise ValueError("Assignee is not a member of this workspace.")
 
         old_assignee_id = task.assignee_id
 
@@ -85,14 +80,8 @@ def assign_task(
                 task_id=task.task_id,
                 user_id=user_id,
                 field=TaskActivityField.ASSIGNEE,
-                old_value=(
-                    str(old_assignee_id)
-                    if old_assignee_id else None
-                ),
-                new_value=(
-                    str(task.assignee_id)
-                    if task.assignee_id else None
-                ),
+                old_value=(str(old_assignee_id) if old_assignee_id else None),
+                new_value=(str(task.assignee_id) if task.assignee_id else None),
             )
 
         session.commit()
@@ -103,4 +92,3 @@ def assign_task(
     except Exception:
         session.rollback()
         raise
-

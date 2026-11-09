@@ -1,11 +1,11 @@
 import strawberry
 
 from src.modules.auth.services import (
-    sign_up,
     confirm_sign_up,
+    refresh_tokens,
     resend_confirmation_code,
     sign_in,
-    refresh_tokens,
+    sign_up,
 )
 
 

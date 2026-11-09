@@ -1,16 +1,17 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-from src.models.workspace import Workspace, WorkspaceMember
+
 from src.models.role import Role
 from src.models.user import User, UserProfile
-
+from src.models.workspace import Workspace, WorkspaceMember
 
 # -----------------------------
 # WORKSPACE OPERATIONS
 # -----------------------------
+
 
 def create_workspace_record(
     session: Session,
@@ -45,6 +46,7 @@ def get_workspace(
 
     return session.scalar(statement)
 
+
 def update_workspace_record(
     session: Session,
     workspace: Workspace,
@@ -66,6 +68,7 @@ def update_workspace_record(
 
     return workspace
 
+
 def delete_workspace_record(
     session: Session,
     workspace: Workspace,
@@ -79,6 +82,7 @@ def delete_workspace_record(
 # -----------------------------
 # ROLE OPERATIONS
 # -----------------------------
+
 
 def create_workspace_role(
     session: Session,
@@ -133,6 +137,7 @@ def get_role_by_name(
 # -----------------------------
 # WORKSPACE MEMBER OPERATIONS
 # -----------------------------
+
 
 def create_workspace_member(
     session: Session,
@@ -237,10 +242,12 @@ def get_user_workspaces(
 
     return list(session.scalars(statement).all())
 
+
 # -----------------------------
 # GET USER WORKSPACE
 # -----------------------------
-#Get one specific workspace that a particular user belongs to.
+# Get one specific workspace that a particular user belongs to.
+
 
 def get_user_workspace(
     session: Session,
@@ -267,6 +274,7 @@ def get_user_workspace(
 # -----------------------------
 # RESTORE WORKSPACE
 # -----------------------------
+
 
 def restore_workspace_record(
     session: Session,

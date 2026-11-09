@@ -1,52 +1,26 @@
-import strawberry
-
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
+
+import strawberry
 
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-
-from src.models.task import TaskStatus, TaskPriority
-
-from src.modules.user.services import get_profile
-
-from src.modules.task.types import (
-    TaskType,
-    TaskStatusType,
-    TaskPriorityType,
-)
-
-# -----------------------------
-# COMMENT SERVICES
-# -----------------------------
-from src.modules.task.services.comment_service import (
-    create_task_comment,
-    update_task_comment,
-    delete_task_comment,
-)
-
-# -----------------------------
-# TASK SERVICES
-# -----------------------------
-from src.modules.task.services.task_service import (
-    create_task,
-    update_task,
-    delete_task,
-)
+from src.models.task import TaskPriority, TaskStatus
 
 # -----------------------------
 # SUBTASK SERVICES
 # -----------------------------
-from src.modules.task.services.subtask_service import (
-    create_subtask,
-)
+from src.modules.task.services.subtask_service import create_subtask
 
 # -----------------------------
 # TASK ASSIGNMENT SERVICES
 # -----------------------------
-from src.modules.task.services.task_assignment_service import (
-    assign_task,
-)
+from src.modules.task.services.task_assignment_service import assign_task
+
+# -----------------------------
+# TASK SERVICES
+# -----------------------------
+from src.modules.task.services.task_service import create_task, delete_task, update_task
 
 # -----------------------------
 # TASK TRASH SERVICES
@@ -54,6 +28,9 @@ from src.modules.task.services.task_assignment_service import (
 from src.modules.task.services.task_trash_service import (
     restore_task as restore_task_service,
 )
+from src.modules.task.types import TaskPriorityType, TaskStatusType, TaskType
+from src.modules.user.services import get_profile
+
 
 @strawberry.type
 class TaskMutation:
@@ -89,7 +66,6 @@ class TaskMutation:
                 session=session,
                 cognito_sub=cognito_sub,
             )
-      
 
             if profile is None:
                 raise ValueError("User profile not found.")
@@ -109,7 +85,9 @@ class TaskMutation:
             return TaskType(
                 task_id=str(task.task_id),
                 workspace_id=str(task.workspace_id),
-                parent_task_id=str(task.parent_task_id) if task.parent_task_id else None,
+                parent_task_id=(
+                    str(task.parent_task_id) if task.parent_task_id else None
+                ),
                 title=task.title,
                 description=task.description,
                 status=TaskStatusType(task.status.value),
@@ -120,7 +98,6 @@ class TaskMutation:
                 created_at=task.created_at,
                 updated_at=task.updated_at,
             )
-
 
     # -----------------------------
     # UPDATE TASK
@@ -172,7 +149,9 @@ class TaskMutation:
             return TaskType(
                 task_id=str(task.task_id),
                 workspace_id=str(task.workspace_id),
-                parent_task_id=str(task.parent_task_id) if task.parent_task_id else None,
+                parent_task_id=(
+                    str(task.parent_task_id) if task.parent_task_id else None
+                ),
                 title=task.title,
                 description=task.description,
                 status=TaskStatusType(task.status.value),
@@ -183,7 +162,6 @@ class TaskMutation:
                 created_at=task.created_at,
                 updated_at=task.updated_at,
             )
-
 
     # -----------------------------
     # DELETE TASK
@@ -221,7 +199,6 @@ class TaskMutation:
                 workspace_id=workspace_uuid,
                 user_id=profile.user_id,
             )
-
 
     # -----------------------------
     # ASSIGN TASK
@@ -266,7 +243,9 @@ class TaskMutation:
             return TaskType(
                 task_id=str(task.task_id),
                 workspace_id=str(task.workspace_id),
-                parent_task_id=str(task.parent_task_id) if task.parent_task_id else None,
+                parent_task_id=(
+                    str(task.parent_task_id) if task.parent_task_id else None
+                ),
                 title=task.title,
                 description=task.description,
                 status=TaskStatusType(task.status.value),
@@ -277,8 +256,6 @@ class TaskMutation:
                 created_at=task.created_at,
                 updated_at=task.updated_at,
             )
-
-
 
     # -----------------------------
     # CREATE SUBTASK
@@ -306,9 +283,7 @@ class TaskMutation:
             assignee_uuid = UUID(assignee_id) if assignee_id else None
 
         except ValueError:
-            raise ValueError(
-                "Invalid parent task ID, workspace ID, or assignee ID."
-            )
+            raise ValueError("Invalid parent task ID, workspace ID, or assignee ID.")
 
         with SessionLocal() as session:
 
@@ -341,16 +316,12 @@ class TaskMutation:
                 description=subtask.description,
                 status=TaskStatusType(subtask.status.value),
                 priority=TaskPriorityType(subtask.priority.value),
-                assignee_id=(
-                    str(subtask.assignee_id)
-                    if subtask.assignee_id else None
-                ),
+                assignee_id=(str(subtask.assignee_id) if subtask.assignee_id else None),
                 created_by=str(subtask.created_by),
                 due_date=subtask.due_date,
                 created_at=subtask.created_at,
                 updated_at=subtask.updated_at,
             )
-
 
     # -----------------------------
     # RESTORE TASK
@@ -393,17 +364,13 @@ class TaskMutation:
                 task_id=str(task.task_id),
                 workspace_id=str(task.workspace_id),
                 parent_task_id=(
-                    str(task.parent_task_id)
-                    if task.parent_task_id else None
+                    str(task.parent_task_id) if task.parent_task_id else None
                 ),
                 title=task.title,
                 description=task.description,
                 status=TaskStatusType(task.status.value),
                 priority=TaskPriorityType(task.priority.value),
-                assignee_id=(
-                    str(task.assignee_id)
-                    if task.assignee_id else None
-                ),
+                assignee_id=(str(task.assignee_id) if task.assignee_id else None),
                 created_by=str(task.created_by),
                 due_date=task.due_date,
                 created_at=task.created_at,

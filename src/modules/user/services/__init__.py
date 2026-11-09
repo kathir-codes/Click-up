@@ -1,5 +1,5 @@
 from src.modules.user.services.user_service import (
-    sync_user_profile,
     get_profile,
+    sync_user_profile,
     update_profile,
 )

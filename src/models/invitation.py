@@ -2,15 +2,9 @@ import enum
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import (
-    DateTime,
-    Enum,
-    ForeignKey,
-    ForeignKeyConstraint,
-    String,
-    func,
-)
+from sqlalchemy import DateTime, Enum, ForeignKey, ForeignKeyConstraint, String, func
 from sqlalchemy.orm import Mapped, mapped_column
+
 from src.db.base import Base
 
 
@@ -55,8 +49,8 @@ class Invitation(Base):
     )
 
     role_id: Mapped[UUID] = mapped_column(
-    nullable=False,
-)
+        nullable=False,
+    )
 
     status: Mapped[InvitationStatus] = mapped_column(
         Enum(InvitationStatus, name="invitation_status"),

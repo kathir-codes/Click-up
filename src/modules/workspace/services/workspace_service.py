@@ -1,10 +1,10 @@
 from uuid import UUID
+
 from sqlalchemy.orm import Session
 
-from src.models.workspace import Workspace
-from src.common.role_permissions import ROLE_PERMISSIONS
 from src.common.permissions import Permission
-from src.modules.workspace.repositories import workspace_repository as repository
+from src.common.role_permissions import ROLE_PERMISSIONS
+from src.models.workspace import Workspace
 from src.modules.authorization.repository import assign_permissions_to_role
 from src.modules.authorization.service import check_workspace_permission
 from src.modules.workspace.repositories import workspace_repository as repository
@@ -12,6 +12,7 @@ from src.modules.workspace.repositories import workspace_repository as repositor
 # -----------------------------
 # CREATE WORKSPACE
 # -----------------------------
+
 
 def create_workspace(
     session: Session,
@@ -80,6 +81,7 @@ def create_workspace(
 # UPDATE WORKSPACE
 # -----------------------------
 
+
 def update_workspace(
     session: Session,
     workspace_id: UUID,
@@ -99,9 +101,7 @@ def update_workspace(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to update this workspace."
-            )
+            raise ValueError("You do not have permission to update this workspace.")
 
         # 2. Find workspace
         workspace = repository.get_workspace(
@@ -136,6 +136,7 @@ def update_workspace(
 # DELETE WORKSPACE
 # -----------------------------
 
+
 def delete_workspace(
     session: Session,
     workspace_id: UUID,
@@ -152,9 +153,7 @@ def delete_workspace(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to delete this workspace."
-            )
+            raise ValueError("You do not have permission to delete this workspace.")
 
         # 2. Find workspace
         workspace = repository.get_workspace(
@@ -185,6 +184,7 @@ def delete_workspace(
 # GET USER WORKSPACES
 # -----------------------------
 
+
 def get_user_workspaces(
     session: Session,
     user_id: UUID,
@@ -199,6 +199,7 @@ def get_user_workspaces(
 # -----------------------------
 # GET SINGLE USER WORKSPACE
 # -----------------------------
+
 
 def get_user_workspace(
     session: Session,
@@ -217,6 +218,7 @@ def get_user_workspace(
 # GET WORKSPACE MEMBERS
 # -----------------------------
 
+
 def get_workspace_members(
     session: Session,
     workspace_id: UUID,
@@ -230,6 +232,7 @@ def get_workspace_members(
 # -----------------------------
 # REMOVE WORKSPACE MEMBER
 # -----------------------------
+
 
 def remove_workspace_member(
     session: Session,
@@ -248,9 +251,7 @@ def remove_workspace_member(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to remove workspace members."
-            )
+            raise ValueError("You do not have permission to remove workspace members.")
 
         # 2. Find target member
         membership = repository.get_workspace_member(
@@ -283,13 +284,8 @@ def remove_workspace_member(
 
         requester_role = session.get(Role, requester_membership.role_id)
 
-        if (
-            requester_role.role_name == "Admin"
-            and target_role.role_name != "Member"
-        ):
-            raise ValueError(
-                "Admin can remove Members only."
-            )
+        if requester_role.role_name == "Admin" and target_role.role_name != "Member":
+            raise ValueError("Admin can remove Members only.")
 
         # 6. Delete workspace membership
         repository.delete_workspace_member(
@@ -311,6 +307,7 @@ def remove_workspace_member(
 # RESTORE WORKSPACE
 # -----------------------------
 
+
 def restore_workspace(
     session: Session,
     workspace_id: UUID,
@@ -327,9 +324,7 @@ def restore_workspace(
         )
 
         if not has_permission:
-            raise ValueError(
-                "You do not have permission to restore this workspace."
-            )
+            raise ValueError("You do not have permission to restore this workspace.")
 
         # 2. Find workspace, including deleted records
         workspace = session.get(Workspace, workspace_id)
@@ -352,9 +347,11 @@ def restore_workspace(
         session.rollback()
         raise
 
+
 # -----------------------------
 # CHECK WHETHER WORKSPACE IS ACTIVE
 # -----------------------------
+
 
 def check_workspace_is_active(
     session: Session,
@@ -366,8 +363,6 @@ def check_workspace_is_active(
     )
 
     if workspace is None:
-        raise ValueError(
-            "Workspace not found or has been deleted."
-        )
+        raise ValueError("Workspace not found or has been deleted.")
 
     return workspace

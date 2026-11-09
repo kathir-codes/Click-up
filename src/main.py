@@ -1,16 +1,18 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from src.exceptions.graphql_error_handler import CustomGraphQLRouter
 from src.logging.config import setup_logging
-from fastapi.middleware.cors import CORSMiddleware
-from src.modules.graphql_schema import schema
 from src.middleware.request_id import request_id_middleware
 from src.middleware.request_logging import request_logging_middleware
+from src.modules.graphql_schema import schema
+
 # Configure logging first
 setup_logging()
 
-logger = logging.getLogger(__name__) #current module name
+logger = logging.getLogger(__name__)  # current module name
 
 # Create FastAPI application
 app = FastAPI(title="ClickUp Backend")
@@ -37,4 +39,3 @@ logger.info("ClickUp backend application initialized")
 @app.get("/")
 def root():
     return {"message": "ClickUp Backend is running"}
-

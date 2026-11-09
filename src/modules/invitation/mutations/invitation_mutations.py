@@ -1,22 +1,27 @@
+from uuid import UUID
 
 import strawberry
 
-from uuid import UUID
 from src.common.permissions import Permission
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-from src.modules.invitation.services import (
-    create_workspace_invitation,
-    accept_workspace_invitation as accept_invitation_service,
-    decline_workspace_invitation as decline_invitation_service,
-    resend_workspace_invitation,
-    cancel_workspace_invitation,
-)
-
-from src.modules.authorization.service import check_workspace_permission
-from src.modules.invitation.types import InvitationType, InvitationStatusType
 from src.models.invitation import Invitation
+from src.modules.authorization.service import check_workspace_permission
+from src.modules.invitation.services import (
+    accept_workspace_invitation as accept_invitation_service,
+)
+from src.modules.invitation.services import (
+    cancel_workspace_invitation,
+    create_workspace_invitation,
+)
+from src.modules.invitation.services import (
+    decline_workspace_invitation as decline_invitation_service,
+)
+from src.modules.invitation.services import resend_workspace_invitation
+from src.modules.invitation.types import InvitationStatusType, InvitationType
 from src.modules.user.services import get_profile
+
+
 @strawberry.type
 class InvitationMutation:
 
@@ -59,9 +64,7 @@ class InvitationMutation:
             )
 
             if not has_permission:
-                raise ValueError(
-                    "You don't have permission to invite members."
-                )
+                raise ValueError("You don't have permission to invite members.")
 
             invitation, token = create_workspace_invitation(
                 session=session,
@@ -129,8 +132,6 @@ class InvitationMutation:
                 created_at=invitation.created_at,
             )
 
-
-
     # -----------------------------
     # RESEND WORKSPACE INVITATION
     # -----------------------------
@@ -178,9 +179,7 @@ class InvitationMutation:
             )
 
             if not has_permission:
-                raise ValueError(
-                    "You don't have permission to resend invitations."
-                )
+                raise ValueError("You don't have permission to resend invitations.")
 
             # 4. Resend invitation
             invitation, token = resend_workspace_invitation(
@@ -201,7 +200,6 @@ class InvitationMutation:
                 created_at=invitation.created_at,
                 token=token,
             )
-
 
     # -----------------------------
     # CANCEL WORKSPACE INVITATION
@@ -250,9 +248,7 @@ class InvitationMutation:
             )
 
             if not has_permission:
-                raise ValueError(
-                    "You don't have permission to cancel invitations."
-                )
+                raise ValueError("You don't have permission to cancel invitations.")
 
             # 4. Cancel invitation
             invitation = cancel_workspace_invitation(
@@ -272,7 +268,6 @@ class InvitationMutation:
                 accepted_at=invitation.accepted_at,
                 created_at=invitation.created_at,
             )
-
 
     # -----------------------------
     # DECLINE WORKSPACE INVITATION
@@ -318,4 +313,3 @@ class InvitationMutation:
                 accepted_at=invitation.accepted_at,
                 created_at=invitation.created_at,
             )
-

@@ -39,12 +39,12 @@ class Tag(Base):
         ForeignKey("workspaces.workspace_id", ondelete="CASCADE"),
         nullable=False,
     )
-    
+
     name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
     )
-    
+
     created_by: Mapped[UUID] = mapped_column(
         ForeignKey("users.user_id"),
         nullable=False,
