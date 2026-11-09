@@ -1,18 +1,20 @@
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
 from src.models.task import TaskActivityField, TaskComment
-from src.modules.authorization.service import check_workspace_permission
+from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.task.repositories import comment_repository, task_repository
 from src.modules.task.services.activity_service import create_task_activity
+
 
 # -----------------------------
 # CREATE COMMENT
 # -----------------------------
 
-
+@require_workspace_permission(Permission.ADD_COMMENT)
 def create_task_comment(
     session: Session,
     task_id: UUID,
@@ -26,16 +28,6 @@ def create_task_comment(
 
         if not content:
             raise ValueError("Comment cannot be empty.")
-
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.ADD_COMMENT,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to comment on this task.")
 
         task = task_repository.get_task_by_id(
             session=session,
@@ -76,23 +68,13 @@ def create_task_comment(
 # GET TASK COMMENTS
 # -----------------------------
 
-
+@require_workspace_permission(Permission.VIEW_TASK)
 def get_task_comments(
     session: Session,
     task_id: UUID,
     workspace_id: UUID,
     user_id: UUID,
 ) -> list[TaskComment]:
-
-    has_permission = check_workspace_permission(
-        session=session,
-        workspace_id=workspace_id,
-        user_id=user_id,
-        permission_name=Permission.VIEW_TASK,
-    )
-
-    if not has_permission:
-        raise ValueError("You do not have permission to view task comments.")
 
     task = task_repository.get_task_by_id(
         session=session,
@@ -113,7 +95,7 @@ def get_task_comments(
 # UPDATE OWN COMMENT
 # -----------------------------
 
-
+@require_workspace_permission(Permission.UPDATE_COMMENT)
 def update_task_comment(
     session: Session,
     comment_id: UUID,
@@ -128,16 +110,6 @@ def update_task_comment(
 
         if not content:
             raise ValueError("Comment cannot be empty.")
-
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.UPDATE_COMMENT,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to update comments.")
 
         task = task_repository.get_task_by_id(
             session=session,
@@ -180,7 +152,7 @@ def update_task_comment(
 # DELETE OWN COMMENT
 # -----------------------------
 
-
+@require_workspace_permission(Permission.DELETE_COMMENT)
 def delete_task_comment(
     session: Session,
     comment_id: UUID,
@@ -190,16 +162,6 @@ def delete_task_comment(
 ) -> bool:
 
     try:
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.DELETE_COMMENT,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to delete comments.")
-
         task = task_repository.get_task_by_id(
             session=session,
             task_id=task_id,

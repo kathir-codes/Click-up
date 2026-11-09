@@ -1,3 +1,4 @@
+
 from uuid import UUID
 
 import strawberry
@@ -9,11 +10,9 @@ from src.modules.workspace.services import (
     create_workspace,
     delete_workspace,
     remove_workspace_member,
-)
-from src.modules.workspace.services import (
     restore_workspace as restore_workspace_service,
+    update_workspace,
 )
-from src.modules.workspace.services import update_workspace
 from src.modules.workspace.types import WorkspaceType
 
 
@@ -32,10 +31,10 @@ class WorkspaceMutation:
         slug: str,
         description: str | None = None,
     ) -> WorkspaceType:
+
         cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
-
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -81,7 +80,6 @@ class WorkspaceMutation:
             raise ValueError("Invalid workspace ID.")
 
         with SessionLocal() as session:
-
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -128,7 +126,6 @@ class WorkspaceMutation:
             raise ValueError("Invalid workspace ID.")
 
         with SessionLocal() as session:
-
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -169,7 +166,6 @@ class WorkspaceMutation:
             raise ValueError("Invalid workspace ID or target user ID.")
 
         with SessionLocal() as session:
-
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -181,7 +177,7 @@ class WorkspaceMutation:
             removed = remove_workspace_member(
                 session=session,
                 workspace_id=workspace_uuid,
-                requester_user_id=profile.user_id,
+                user_id=profile.user_id,
                 target_user_id=target_user_uuid,
             )
 
@@ -206,7 +202,6 @@ class WorkspaceMutation:
             raise ValueError("Invalid workspace ID.")
 
         with SessionLocal() as session:
-
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,

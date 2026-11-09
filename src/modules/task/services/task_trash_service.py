@@ -1,41 +1,31 @@
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
 from src.models.task import Task
-from src.modules.authorization.service import check_workspace_permission
+from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.task.repositories import task_repository
 from src.modules.workspace.services.workspace_service import check_workspace_is_active
+
 
 # -----------------------------
 # GET TRASH TASKS
 # -----------------------------
 
-
+@require_workspace_permission(Permission.VIEW_TASK)
 def get_deleted_tasks(
     session: Session,
     workspace_id: UUID,
     user_id: UUID,
 ) -> list[Task]:
 
-    # -----------------------------
-    # CHECK WHETHER WORKSPACE IS ACTIVE
-    # -----------------------------
+    # Check whether workspace is active
     check_workspace_is_active(
         session=session,
         workspace_id=workspace_id,
     )
-
-    has_permission = check_workspace_permission(
-        session=session,
-        workspace_id=workspace_id,
-        user_id=user_id,
-        permission_name=Permission.VIEW_TASK,
-    )
-
-    if not has_permission:
-        raise ValueError("You do not have permission to view deleted tasks.")
 
     return task_repository.get_deleted_tasks_by_workspace(
         session=session,
@@ -47,7 +37,7 @@ def get_deleted_tasks(
 # RESTORE TASK
 # -----------------------------
 
-
+@require_workspace_permission(Permission.DELETE_TASK)
 def restore_task(
     session: Session,
     task_id: UUID,
@@ -56,23 +46,11 @@ def restore_task(
 ) -> Task:
 
     try:
-        # -----------------------------
-        # CHECK WHETHER WORKSPACE IS ACTIVE
-        # -----------------------------
+        # Check whether workspace is active
         check_workspace_is_active(
             session=session,
             workspace_id=workspace_id,
         )
-
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.DELETE_TASK,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to restore tasks.")
 
         # Find the task in Trash
         deleted_tasks = task_repository.get_deleted_tasks_by_workspace(
