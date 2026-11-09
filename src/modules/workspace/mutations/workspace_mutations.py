@@ -1,6 +1,4 @@
 
-from uuid import UUID
-
 import strawberry
 
 from src.core.database import SessionLocal
@@ -14,7 +12,12 @@ from src.modules.workspace.services import (
     update_workspace,
 )
 from src.modules.workspace.types import WorkspaceType
-
+from src.modules.workspace.validations import (
+    CreateWorkspacePayload,
+    RemoveWorkspaceMemberPayload,
+    UpdateWorkspacePayload,
+    WorkspaceIDPayload,
+)
 
 @strawberry.type
 class WorkspaceMutation:
@@ -32,6 +35,12 @@ class WorkspaceMutation:
         description: str | None = None,
     ) -> WorkspaceType:
 
+        validated_data = CreateWorkspacePayload(
+            name=name,
+            slug=slug,
+            description=description,
+        )
+
         cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
@@ -45,9 +54,9 @@ class WorkspaceMutation:
 
             workspace = create_workspace(
                 session=session,
-                name=name,
-                slug=slug,
-                description=description,
+                name=validated_data.name,
+                slug=validated_data.slug,
+                description=validated_data.description,
                 creator_user_id=profile.user_id,
             )
 
@@ -72,12 +81,17 @@ class WorkspaceMutation:
         description: str | None = None,
     ) -> WorkspaceType:
 
-        cognito_sub = get_current_user_sub(info)
+        validated_data = UpdateWorkspacePayload(
+            name=name,
+            slug=slug,
+            description=description,
+        )
 
-        try:
-            workspace_uuid = UUID(workspace_id)
-        except ValueError:
-            raise ValueError("Invalid workspace ID.")
+        workspace_id_data = WorkspaceIDPayload(
+            workspace_id=workspace_id,
+        )
+
+        cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
             profile = get_profile(
@@ -90,11 +104,11 @@ class WorkspaceMutation:
 
             workspace = update_workspace(
                 session=session,
-                workspace_id=workspace_uuid,
+                workspace_id=workspace_id_data.workspace_id,
                 user_id=profile.user_id,
-                name=name,
-                slug=slug,
-                description=description,
+                name=validated_data.name,
+                slug=validated_data.slug,
+                description=validated_data.description,
             )
 
             if workspace is None:
@@ -118,12 +132,11 @@ class WorkspaceMutation:
         workspace_id: str,
     ) -> bool:
 
-        cognito_sub = get_current_user_sub(info)
+        workspace_id_data = WorkspaceIDPayload(
+            workspace_id=workspace_id,
+        )
 
-        try:
-            workspace_uuid = UUID(workspace_id)
-        except ValueError:
-            raise ValueError("Invalid workspace ID.")
+        cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
             profile = get_profile(
@@ -136,7 +149,7 @@ class WorkspaceMutation:
 
             deleted = delete_workspace(
                 session=session,
-                workspace_id=workspace_uuid,
+                workspace_id=workspace_id_data.workspace_id,
                 user_id=profile.user_id,
             )
 
@@ -157,13 +170,12 @@ class WorkspaceMutation:
         target_user_id: str,
     ) -> bool:
 
-        cognito_sub = get_current_user_sub(info)
+        validated_data = RemoveWorkspaceMemberPayload(
+            workspace_id=workspace_id,
+            target_user_id=target_user_id,
+        )
 
-        try:
-            workspace_uuid = UUID(workspace_id)
-            target_user_uuid = UUID(target_user_id)
-        except ValueError:
-            raise ValueError("Invalid workspace ID or target user ID.")
+        cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
             profile = get_profile(
@@ -176,9 +188,9 @@ class WorkspaceMutation:
 
             removed = remove_workspace_member(
                 session=session,
-                workspace_id=workspace_uuid,
+                workspace_id=validated_data.workspace_id,
                 user_id=profile.user_id,
-                target_user_id=target_user_uuid,
+                target_user_id=validated_data.target_user_id,
             )
 
             return removed
@@ -194,12 +206,11 @@ class WorkspaceMutation:
         workspace_id: str,
     ) -> bool:
 
-        cognito_sub = get_current_user_sub(info)
+        workspace_id_data = WorkspaceIDPayload(
+            workspace_id=workspace_id,
+        )
 
-        try:
-            workspace_uuid = UUID(workspace_id)
-        except ValueError:
-            raise ValueError("Invalid workspace ID.")
+        cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
             profile = get_profile(
@@ -212,7 +223,7 @@ class WorkspaceMutation:
 
             restored = restore_workspace_service(
                 session=session,
-                workspace_id=workspace_uuid,
+                workspace_id=workspace_id_data.workspace_id,
                 user_id=profile.user_id,
             )
 
