@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)  # current module name
 
 # Create FastAPI application
 app = FastAPI(title="ClickUp Backend")
+
 app.middleware("http")(request_logging_middleware)
 app.middleware("http")(request_id_middleware)
 

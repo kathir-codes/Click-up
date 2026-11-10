@@ -149,7 +149,7 @@ class Task(Base):
     # One Task can have multiple comments
     comments: Mapped[list["TaskComment"]] = relationship(
         back_populates="task",
-        cascade="all, delete-orphan",
+        cascade="all, delete",
         passive_deletes=True,
     )
 

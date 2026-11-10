@@ -9,7 +9,6 @@ from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.task.repositories import task_repository
 from src.modules.workspace.services.workspace_service import check_workspace_is_active
 
-
 # -----------------------------
 # GET TRASH TASKS
 # -----------------------------

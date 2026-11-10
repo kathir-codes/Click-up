@@ -11,7 +11,6 @@ from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
 from src.modules.workspace.services.workspace_service import check_workspace_is_active
 
-
 # -----------------------------
 # CREATE TASK
 # -----------------------------

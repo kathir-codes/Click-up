@@ -1,7 +1,7 @@
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -11,7 +11,6 @@ from src.models.invitation import Invitation, InvitationStatus
 from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.invitation.repositories import invitation_repository as repository
 from src.modules.workspace.repositories import workspace_repository
-
 
 # -----------------------------
 # CREATE WORKSPACE INVITATION
@@ -37,7 +36,7 @@ def create_workspace_invitation(
 
         token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+        expires_at = datetime.now(UTC) + timedelta(days=7)
 
         invitation = repository.create_invitation(
             session=session,
@@ -112,7 +111,7 @@ def accept_workspace_invitation(
         if invitation.status != InvitationStatus.PENDING:
             raise ValueError("Invitation is no longer pending.")
 
-        if invitation.expires_at <= datetime.now(timezone.utc):
+        if invitation.expires_at <= datetime.now(UTC):
             repository.update_invitation_status(
                 invitation=invitation,
                 status=InvitationStatus.EXPIRED,
@@ -179,7 +178,7 @@ def resend_workspace_invitation(
         if invitation.status != InvitationStatus.PENDING:
             raise ValueError("Only pending invitations can be resent.")
 
-        if invitation.expires_at <= datetime.now(timezone.utc):
+        if invitation.expires_at <= datetime.now(UTC):
             repository.update_invitation_status(
                 invitation=invitation,
                 status=InvitationStatus.EXPIRED,
@@ -189,7 +188,7 @@ def resend_workspace_invitation(
 
         token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+        expires_at = datetime.now(UTC) + timedelta(days=7)
 
         repository.update_invitation_token(
             invitation=invitation,
@@ -272,7 +271,7 @@ def decline_workspace_invitation(
         if invitation.status != InvitationStatus.PENDING:
             raise ValueError("Invitation is no longer pending.")
 
-        if invitation.expires_at <= datetime.now(timezone.utc):
+        if invitation.expires_at <= datetime.now(UTC):
             repository.update_invitation_status(
                 invitation=invitation,
                 status=InvitationStatus.EXPIRED,

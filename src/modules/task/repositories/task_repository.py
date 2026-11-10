@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -127,7 +127,7 @@ def delete_task_record(
     task: Task,
 ) -> None:
 
-    deleted_time = datetime.now(timezone.utc)
+    deleted_time = datetime.now(UTC)
 
     # Soft delete the main task
     task.deleted_at = deleted_time

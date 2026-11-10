@@ -11,7 +11,6 @@ from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.authorization.repository import assign_permissions_to_role
 from src.modules.workspace.repositories import workspace_repository as repository
 
-
 # -----------------------------
 # CREATE WORKSPACE
 # -----------------------------
@@ -24,6 +23,17 @@ def create_workspace(
     creator_user_id: UUID,
 ) -> Workspace:
     try:
+        # Check whether the slug is already used.
+        existing_workspace = repository.get_workspace_by_slug(
+            session=session,
+            slug=slug,
+        )
+
+        if existing_workspace:
+            raise ValueError(
+                "A workspace with this slug already exists."
+            )
+
         workspace = repository.create_workspace_record(
             session=session,
             name=name,
@@ -193,6 +203,7 @@ def get_workspace_members(
         session=session,
         workspace_id=workspace_id,
     )
+
 
 # -----------------------------
 # REMOVE WORKSPACE MEMBER
