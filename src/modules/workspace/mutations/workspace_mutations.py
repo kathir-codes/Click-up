@@ -8,8 +8,10 @@ from src.modules.workspace.services import (
     create_workspace,
     delete_workspace,
     remove_workspace_member,
-    restore_workspace as restore_workspace_service,
     update_workspace,
+)
+from src.modules.workspace.services import (
+    restore_workspace as restore_workspace_service,
 )
 from src.modules.workspace.types import WorkspaceType
 from src.modules.workspace.validations import (
@@ -18,6 +20,7 @@ from src.modules.workspace.validations import (
     UpdateWorkspacePayload,
     WorkspaceIDPayload,
 )
+
 
 @strawberry.type
 class WorkspaceMutation:

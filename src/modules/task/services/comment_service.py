@@ -9,7 +9,6 @@ from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.task.repositories import comment_repository, task_repository
 from src.modules.task.services.activity_service import create_task_activity
 
-
 # -----------------------------
 # CREATE COMMENT
 # -----------------------------
@@ -36,7 +35,10 @@ def create_task_comment(
         )
 
         if task is None:
-            raise ValueError("Task not found.")
+            raise ValueError("Task not found.") 
+        
+        if task.deleted_at is not None:
+            raise ValueError("Cannot add a comment to a deleted task.")
 
         comment = comment_repository.create_comment_record(
             session=session,
@@ -85,6 +87,9 @@ def get_task_comments(
     if task is None:
         raise ValueError("Task not found.")
 
+    if task.deleted_at is not None:
+        raise ValueError("Cannot view comments of a deleted task.")
+
     return comment_repository.get_comments_by_task(
         session=session,
         task_id=task_id,
@@ -119,6 +124,9 @@ def update_task_comment(
 
         if task is None:
             raise ValueError("Task not found.")
+
+        if task.deleted_at is not None:
+            raise ValueError("Cannot update a comment on a deleted task.")
 
         comment = comment_repository.get_comment_by_id(
             session=session,
@@ -170,6 +178,9 @@ def delete_task_comment(
 
         if task is None:
             raise ValueError("Task not found.")
+
+        if task.deleted_at is not None:
+            raise ValueError("Cannot delete a comment from a deleted task.")
 
         comment = comment_repository.get_comment_by_id(
             session=session,

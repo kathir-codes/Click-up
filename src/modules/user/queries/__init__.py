@@ -1,1 +1,3 @@
-from src.modules.user.queries.user_queries import UserQuery
+from src.modules.user.queries.user_queries import (
+    UserQuery as UserQuery,
+)

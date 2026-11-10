@@ -11,7 +11,6 @@ from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.authorization.repository import assign_permissions_to_role
 from src.modules.workspace.repositories import workspace_repository as repository
 
-
 # -----------------------------
 # CREATE WORKSPACE
 # -----------------------------

@@ -10,7 +10,6 @@ from src.modules.tag.repositories import tag_repository
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
 
-
 # -----------------------------
 # CREATE TAG
 # -----------------------------

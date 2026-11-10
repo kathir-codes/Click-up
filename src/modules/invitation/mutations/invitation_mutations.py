@@ -8,10 +8,14 @@ from src.core.dependencies import get_current_user_sub
 from src.models.invitation import Invitation
 from src.modules.invitation.services import (
     accept_workspace_invitation as accept_invitation_service,
+)
+from src.modules.invitation.services import (
     cancel_workspace_invitation,
     create_workspace_invitation,
-    decline_workspace_invitation as decline_invitation_service,
     resend_workspace_invitation,
+)
+from src.modules.invitation.services import (
+    decline_workspace_invitation as decline_invitation_service,
 )
 from src.modules.invitation.types import InvitationStatusType, InvitationType
 from src.modules.user.services import get_profile

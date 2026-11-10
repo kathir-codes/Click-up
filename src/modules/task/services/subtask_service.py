@@ -11,7 +11,6 @@ from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
 from src.modules.workspace.services.workspace_service import check_workspace_is_active
 
-
 # -----------------------------
 # CREATE SUBTASK
 # -----------------------------
@@ -46,6 +45,9 @@ def create_subtask(
 
         if parent_task is None:
             raise ValueError("Parent task not found.")
+
+        if parent_task.deleted_at is not None:
+            raise ValueError("Cannot create a subtask under a deleted task.")
 
         # Prevent nested subtasks
         if parent_task.parent_task_id is not None:
@@ -127,6 +129,9 @@ def get_subtasks(
 
     if parent_task is None:
         raise ValueError("Parent task not found.")
+
+    if parent_task.deleted_at is not None:
+        raise ValueError("Cannot access a deleted task.")
 
     if parent_task.parent_task_id is not None:
         raise ValueError("Subtasks cannot have their own subtasks.")

@@ -1,1 +1,3 @@
-from src.modules.tag.queries.tag_queries import TagQuery
+from src.modules.tag.queries.tag_queries import (
+    TagQuery as TagQuery,
+)

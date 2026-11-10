@@ -8,7 +8,6 @@ from src.models.task import TaskActivity, TaskActivityField
 from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.task.repositories import activity_repository, task_repository
 
-
 # -----------------------------
 # CREATE TASK ACTIVITY
 # -----------------------------
