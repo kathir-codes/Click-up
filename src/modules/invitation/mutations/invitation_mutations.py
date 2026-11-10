@@ -1,33 +1,28 @@
+
 from uuid import UUID
 
 import strawberry
 
-from src.common.permissions import Permission
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
 from src.models.invitation import Invitation
-from src.modules.authorization.service import check_workspace_permission
 from src.modules.invitation.services import (
     accept_workspace_invitation as accept_invitation_service,
 )
 from src.modules.invitation.services import (
     cancel_workspace_invitation,
     create_workspace_invitation,
+    resend_workspace_invitation,
 )
 from src.modules.invitation.services import (
     decline_workspace_invitation as decline_invitation_service,
 )
-from src.modules.invitation.services import resend_workspace_invitation
 from src.modules.invitation.types import InvitationStatusType, InvitationType
 from src.modules.user.services import get_profile
 
 
 @strawberry.type
 class InvitationMutation:
-
-    # -----------------------------
-    # CREATE WORKSPACE INVITATION
-    # -----------------------------
 
     @strawberry.mutation
     def create_workspace_invitation(
@@ -46,7 +41,6 @@ class InvitationMutation:
             raise ValueError("Invalid workspace ID.")
 
         with SessionLocal() as session:
-
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -55,21 +49,10 @@ class InvitationMutation:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # Check INVITE_MEMBER permission
-            has_permission = check_workspace_permission(
-                session=session,
-                workspace_id=workspace_uuid,
-                user_id=profile.user_id,
-                permission_name=Permission.INVITE_MEMBER,
-            )
-
-            if not has_permission:
-                raise ValueError("You don't have permission to invite members.")
-
             invitation, token = create_workspace_invitation(
                 session=session,
                 workspace_id=workspace_uuid,
-                invited_by=profile.user_id,
+                user_id=profile.user_id,
                 email=email,
                 role_name=role_name,
             )
@@ -80,16 +63,12 @@ class InvitationMutation:
                 invited_by=str(invitation.invited_by),
                 email=invitation.email,
                 role_id=str(invitation.role_id),
-                status=InvitationStatusType(invitation.status),
+                status=InvitationStatusType(invitation.status.value),
                 expires_at=invitation.expires_at,
                 accepted_at=invitation.accepted_at,
                 created_at=invitation.created_at,
                 token=token,
             )
-
-    # -----------------------------
-    # ACCEPT WORKSPACE INVITATION
-    # -----------------------------
 
     @strawberry.mutation
     def accept_workspace_invitation(
@@ -101,8 +80,6 @@ class InvitationMutation:
         cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
-
-            # 1. Get logged-in user's profile
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -111,7 +88,6 @@ class InvitationMutation:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # 2. Accept invitation
             invitation = accept_invitation_service(
                 session=session,
                 token=token,
@@ -119,7 +95,6 @@ class InvitationMutation:
                 email=profile.user.email,
             )
 
-            # 3. Return invitation details
             return InvitationType(
                 invitation_id=str(invitation.invitation_id),
                 workspace_id=str(invitation.workspace_id),
@@ -131,10 +106,6 @@ class InvitationMutation:
                 accepted_at=invitation.accepted_at,
                 created_at=invitation.created_at,
             )
-
-    # -----------------------------
-    # RESEND WORKSPACE INVITATION
-    # -----------------------------
 
     @strawberry.mutation
     def resend_workspace_invitation(
@@ -151,8 +122,6 @@ class InvitationMutation:
             raise ValueError("Invalid invitation ID.")
 
         with SessionLocal() as session:
-
-            # 1. Get logged-in user's profile
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -161,33 +130,18 @@ class InvitationMutation:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # 2. Find invitation
-            invitation = session.get(
-                Invitation,
-                invitation_uuid,
-            )
+            invitation = session.get(Invitation, invitation_uuid)
 
             if invitation is None:
                 raise ValueError("Invitation not found.")
 
-            # 3. Check RESEND_INVITATION permission
-            has_permission = check_workspace_permission(
-                session=session,
-                workspace_id=invitation.workspace_id,
-                user_id=profile.user_id,
-                permission_name=Permission.RESEND_INVITATION,
-            )
-
-            if not has_permission:
-                raise ValueError("You don't have permission to resend invitations.")
-
-            # 4. Resend invitation
             invitation, token = resend_workspace_invitation(
                 session=session,
                 invitation_id=invitation_uuid,
+                workspace_id=invitation.workspace_id,
+                user_id=profile.user_id,
             )
 
-            # 5. Return invitation details
             return InvitationType(
                 invitation_id=str(invitation.invitation_id),
                 workspace_id=str(invitation.workspace_id),
@@ -200,10 +154,6 @@ class InvitationMutation:
                 created_at=invitation.created_at,
                 token=token,
             )
-
-    # -----------------------------
-    # CANCEL WORKSPACE INVITATION
-    # -----------------------------
 
     @strawberry.mutation
     def cancel_workspace_invitation(
@@ -220,8 +170,6 @@ class InvitationMutation:
             raise ValueError("Invalid invitation ID.")
 
         with SessionLocal() as session:
-
-            # 1. Get logged-in user's profile
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -230,33 +178,18 @@ class InvitationMutation:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # 2. Find invitation
-            invitation = session.get(
-                Invitation,
-                invitation_uuid,
-            )
+            invitation = session.get(Invitation, invitation_uuid)
 
             if invitation is None:
                 raise ValueError("Invitation not found.")
 
-            # 3. Check CANCEL_INVITATION permission
-            has_permission = check_workspace_permission(
-                session=session,
-                workspace_id=invitation.workspace_id,
-                user_id=profile.user_id,
-                permission_name=Permission.CANCEL_INVITATION,
-            )
-
-            if not has_permission:
-                raise ValueError("You don't have permission to cancel invitations.")
-
-            # 4. Cancel invitation
             invitation = cancel_workspace_invitation(
                 session=session,
                 invitation_id=invitation_uuid,
+                workspace_id=invitation.workspace_id,
+                user_id=profile.user_id,
             )
 
-            # 5. Return invitation details
             return InvitationType(
                 invitation_id=str(invitation.invitation_id),
                 workspace_id=str(invitation.workspace_id),
@@ -269,10 +202,6 @@ class InvitationMutation:
                 created_at=invitation.created_at,
             )
 
-    # -----------------------------
-    # DECLINE WORKSPACE INVITATION
-    # -----------------------------
-
     @strawberry.mutation
     def decline_workspace_invitation(
         self,
@@ -283,8 +212,6 @@ class InvitationMutation:
         cognito_sub = get_current_user_sub(info)
 
         with SessionLocal() as session:
-
-            # 1. Get logged-in user's profile
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -293,7 +220,6 @@ class InvitationMutation:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # 2. Decline invitation
             invitation = decline_invitation_service(
                 session=session,
                 token=token,
@@ -301,7 +227,6 @@ class InvitationMutation:
                 email=profile.user.email,
             )
 
-            # 3. Return invitation details
             return InvitationType(
                 invitation_id=str(invitation.invitation_id),
                 workspace_id=str(invitation.workspace_id),

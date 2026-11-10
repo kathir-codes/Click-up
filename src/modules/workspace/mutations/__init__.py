@@ -1,1 +1,3 @@
-from src.modules.workspace.mutations.workspace_mutations import WorkspaceMutation
+from src.modules.workspace.mutations.workspace_mutations import (
+    WorkspaceMutation as WorkspaceMutation,
+)

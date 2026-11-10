@@ -1,10 +1,11 @@
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
 from src.models.task import TaskActivityField
-from src.modules.authorization.service import check_workspace_permission
+from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.tag.repositories import tag_repository
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
@@ -13,25 +14,14 @@ from src.modules.task.services.activity_service import create_task_activity
 # CREATE TAG
 # -----------------------------
 
-
+@require_workspace_permission(Permission.CREATE_TAG)
 def create_tag(
     session: Session,
     workspace_id: UUID,
     name: str,
     user_id: UUID,
 ):
-
     try:
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.CREATE_TAG,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to create tags.")
-
         name = name.strip()
 
         if not name:
@@ -47,7 +37,9 @@ def create_tag(
         )
 
         if existing_tag:
-            raise ValueError("A tag with this name already exists in this workspace.")
+            raise ValueError(
+                "A tag with this name already exists in this workspace."
+            )
 
         tag = tag_repository.create_tag_record(
             session=session,
@@ -70,23 +62,12 @@ def create_tag(
 # GET ALL WORKSPACE TAGS
 # -----------------------------
 
-
+@require_workspace_permission(Permission.VIEW_TASK)
 def get_workspace_tags(
     session: Session,
     workspace_id: UUID,
     user_id: UUID,
 ):
-
-    has_permission = check_workspace_permission(
-        session=session,
-        workspace_id=workspace_id,
-        user_id=user_id,
-        permission_name=Permission.VIEW_TASK,
-    )
-
-    if not has_permission:
-        raise ValueError("You do not have permission to view workspace tags.")
-
     return tag_repository.get_tags_by_workspace(
         session=session,
         workspace_id=workspace_id,
@@ -97,7 +78,7 @@ def get_workspace_tags(
 # ASSIGN TAG TO TASK
 # -----------------------------
 
-
+@require_workspace_permission(Permission.MANAGE_TASK_TAGS)
 def assign_tag_to_task(
     session: Session,
     task_id: UUID,
@@ -105,18 +86,7 @@ def assign_tag_to_task(
     workspace_id: UUID,
     user_id: UUID,
 ):
-
     try:
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.MANAGE_TASK_TAGS,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to manage task tags.")
-
         # Check task belongs to workspace
         task = task_repository.get_task_by_id(
             session=session,
@@ -179,7 +149,7 @@ def assign_tag_to_task(
 # REMOVE TAG FROM TASK
 # -----------------------------
 
-
+@require_workspace_permission(Permission.MANAGE_TASK_TAGS)
 def remove_tag_from_task(
     session: Session,
     task_id: UUID,
@@ -187,18 +157,7 @@ def remove_tag_from_task(
     workspace_id: UUID,
     user_id: UUID,
 ) -> bool:
-
     try:
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.MANAGE_TASK_TAGS,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to manage task tags.")
-
         # Check task belongs to workspace
         task = task_repository.get_task_by_id(
             session=session,

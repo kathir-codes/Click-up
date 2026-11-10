@@ -1,10 +1,11 @@
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
 from src.models.task import Task, TaskActivityField
-from src.modules.authorization.service import check_workspace_permission
+from src.modules.authorization.decorators import require_workspace_permission
 from src.modules.task.repositories import task_repository
 from src.modules.task.services.activity_service import create_task_activity
 from src.modules.workspace.services.workspace_service import check_workspace_is_active
@@ -13,7 +14,7 @@ from src.modules.workspace.services.workspace_service import check_workspace_is_
 # ASSIGN TASK
 # -----------------------------
 
-
+@require_workspace_permission(Permission.ASSIGN_TASK)
 def assign_task(
     session: Session,
     task_id: UUID,
@@ -23,23 +24,11 @@ def assign_task(
 ) -> Task:
 
     try:
-        # -----------------------------
-        # CHECK WHETHER WORKSPACE IS ACTIVE
-        # -----------------------------
+        # Check whether workspace is active
         check_workspace_is_active(
             session=session,
             workspace_id=workspace_id,
         )
-
-        has_permission = check_workspace_permission(
-            session=session,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            permission_name=Permission.ASSIGN_TASK,
-        )
-
-        if not has_permission:
-            raise ValueError("You do not have permission to assign tasks.")
 
         task = task_repository.get_task_by_id(
             session=session,
@@ -50,6 +39,7 @@ def assign_task(
         if task is None:
             raise ValueError("Task not found.")
 
+        # Validate assignee
         if assignee_id is not None:
             from src.models.workspace import WorkspaceMember
 

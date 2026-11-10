@@ -1,11 +1,10 @@
+
 from uuid import UUID
 
 import strawberry
 
-from src.common.permissions import Permission
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-from src.modules.authorization.service import check_workspace_permission
 from src.modules.invitation.services import get_workspace_invitations
 from src.modules.invitation.types import InvitationStatusType, InvitationType
 from src.modules.user.services import get_profile
@@ -14,10 +13,6 @@ from src.modules.user.services import get_profile
 @strawberry.type
 class InvitationQuery:
 
-    # -----------------------------
-    # GET WORKSPACE INVITATIONS
-    # -----------------------------
-
     @strawberry.field
     def workspace_invitations(
         self,
@@ -25,7 +20,6 @@ class InvitationQuery:
         workspace_id: str,
     ) -> list[InvitationType]:
 
-        # 1. Get logged-in user's Cognito sub
         cognito_sub = get_current_user_sub(info)
 
         try:
@@ -34,8 +28,6 @@ class InvitationQuery:
             raise ValueError("Invalid workspace ID.")
 
         with SessionLocal() as session:
-
-            # 2. Get logged-in user's profile
             profile = get_profile(
                 session=session,
                 cognito_sub=cognito_sub,
@@ -44,26 +36,12 @@ class InvitationQuery:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # 3. Check VIEW_INVITATIONS permission
-            has_permission = check_workspace_permission(
-                session=session,
-                workspace_id=workspace_uuid,
-                user_id=profile.user_id,
-                permission_name=Permission.VIEW_INVITATIONS,
-            )
-
-            if not has_permission:
-                raise ValueError(
-                    "You don't have permission to view workspace invitations."
-                )
-
-            # 4. Get workspace invitations
             invitations = get_workspace_invitations(
                 session=session,
                 workspace_id=workspace_uuid,
+                user_id=profile.user_id,
             )
 
-            # 5. Return invitation details
             return [
                 InvitationType(
                     invitation_id=str(invitation.invitation_id),

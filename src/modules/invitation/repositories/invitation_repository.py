@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func
@@ -71,7 +71,7 @@ def update_invitation_status(
     invitation.status = status
 
     if status == InvitationStatus.ACCEPTED:
-        invitation.accepted_at = datetime.now(timezone.utc)
+        invitation.accepted_at = datetime.now(UTC)
 
     return invitation
 

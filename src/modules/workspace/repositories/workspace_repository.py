@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -74,7 +74,7 @@ def delete_workspace_record(
     workspace: Workspace,
 ) -> None:
 
-    workspace.deleted_at = datetime.now(timezone.utc)
+    workspace.deleted_at = datetime.now(UTC)
 
     session.flush()
 
@@ -286,3 +286,14 @@ def restore_workspace_record(
     session.flush()
 
     return workspace
+
+def get_workspace_by_slug(
+    session: Session,
+    slug: str,
+) -> Workspace | None:
+
+    statement = select(Workspace).where(
+        Workspace.slug == slug,
+    )
+
+    return session.scalar(statement)

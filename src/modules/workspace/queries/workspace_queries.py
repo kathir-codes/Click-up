@@ -1,11 +1,10 @@
+
 from uuid import UUID
 
 import strawberry
 
-from src.common.permissions import Permission
 from src.core.database import SessionLocal
 from src.core.dependencies import get_current_user_sub
-from src.modules.authorization.service import check_workspace_permission
 from src.modules.user.services import get_profile
 from src.modules.workspace.services import (
     get_user_workspace,
@@ -127,20 +126,10 @@ class WorkspaceQuery:
             if profile is None:
                 raise ValueError("User profile not found.")
 
-            # Check VIEW_WORKSPACE_MEMBERS permission
-            has_permission = check_workspace_permission(
-                session=session,
-                workspace_id=workspace_uuid,
-                user_id=profile.user_id,
-                permission_name=Permission.VIEW_WORKSPACE_MEMBERS,
-            )
-
-            if not has_permission:
-                raise ValueError("You don't have permission to view workspace members.")
-
             members = get_workspace_members(
                 session=session,
                 workspace_id=workspace_uuid,
+                user_id=profile.user_id,
             )
 
             return [

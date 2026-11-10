@@ -1,1 +1,3 @@
-from src.modules.workspace.repositories import workspace_repository as repository
+from src.modules.workspace.repositories import (
+    workspace_repository as workspace_repository,
+)
