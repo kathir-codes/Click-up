@@ -13,6 +13,7 @@ def handle_cognito_error(error: ClientError) -> None:
         "ExpiredCodeException": "Confirmation code has expired. Please request a new code.",
         "CodeMismatchException": "Invalid confirmation code.",
         "UsernameExistsException": "An account with this email already exists.",
+        "InvalidParameterException": "Invalid input provided. Please check your information.",
         "UserNotFoundException": "User not found.",
         "NotAuthorizedException": "Invalid credentials or authorization failed.",
         "InvalidPasswordException": "Password does not meet the password policy.",
