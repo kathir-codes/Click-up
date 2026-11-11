@@ -21,7 +21,7 @@ def log_graphql_errors(errors: list[GraphQLError]) -> None:
             original_error, GraphQLError
         ):
             logger.error(
-                "Unexpected GraphQL error: %s",
+                "Unexpected backend error during GraphQL execution: %s",
                 error.message,
                 exc_info=(
                     type(original_error),
