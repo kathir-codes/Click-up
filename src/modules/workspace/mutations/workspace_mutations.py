@@ -13,7 +13,11 @@ from src.modules.workspace.services import (
 from src.modules.workspace.services import (
     restore_workspace as restore_workspace_service,
 )
-from src.modules.workspace.types import WorkspaceType
+from src.modules.workspace.types import (
+    CreateWorkspaceInput,
+    UpdateWorkspaceInput,
+    WorkspaceType,
+)
 from src.modules.workspace.validations import (
     CreateWorkspacePayload,
     RemoveWorkspaceMemberPayload,
@@ -33,15 +37,13 @@ class WorkspaceMutation:
     def create_workspace(
         self,
         info: strawberry.Info,
-        name: str,
-        slug: str,
-        description: str | None = None,
+        input: CreateWorkspaceInput,
     ) -> WorkspaceType:
-
+        
         validated_data = CreateWorkspacePayload(
-            name=name,
-            slug=slug,
-            description=description,
+            name=input.name,
+            slug=input.slug,
+            description=input.description,
         )
 
         cognito_sub = get_current_user_sub(info)
@@ -79,15 +81,13 @@ class WorkspaceMutation:
         self,
         info: strawberry.Info,
         workspace_id: str,
-        name: str | None = None,
-        slug: str | None = None,
-        description: str | None = None,
+        input: UpdateWorkspaceInput,
     ) -> WorkspaceType:
 
         validated_data = UpdateWorkspacePayload(
-            name=name,
-            slug=slug,
-            description=description,
+            name=input.name,
+            slug=input.slug,
+            description=input.description,
         )
 
         workspace_id_data = WorkspaceIDPayload(
