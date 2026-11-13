@@ -19,14 +19,7 @@ class InvitationStatus(str, enum.Enum):
 class Invitation(Base):
     __tablename__ = "invitations"
 
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["workspace_id", "role_id"],
-            ["roles.workspace_id", "roles.role_id"],
-            ondelete="CASCADE",
-            name="fk_invitation_workspace_role",
-        ),
-    )
+    
 
     invitation_id: Mapped[UUID] = mapped_column(
         primary_key=True,
@@ -49,6 +42,7 @@ class Invitation(Base):
     )
 
     role_id: Mapped[UUID] = mapped_column(
+        ForeignKey("roles.role_id"),
         nullable=False,
     )
 

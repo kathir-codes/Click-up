@@ -84,54 +84,18 @@ def delete_workspace_record(
 # -----------------------------
 
 
-def create_workspace_role(
+def get_system_role_by_name(
     session: Session,
-    workspace_id: UUID,
-    role_name: str,
-    creator_user_id: UUID,
-) -> Role:
-
-    role = Role(
-        workspace_id=workspace_id,
-        role_name=role_name,
-        is_system_role=True,
-        created_by=creator_user_id,
-    )
-
-    session.add(role)
-    session.flush()
-
-    return role
-
-
-def get_workspace_role(
-    session: Session,
-    workspace_id: UUID,
     role_name: str,
 ) -> Role | None:
 
     statement = select(Role).where(
-        Role.workspace_id == workspace_id,
         Role.role_name == role_name,
+        Role.is_system_role.is_(True),
+        Role.workspace_id.is_(None),
     )
 
     return session.scalar(statement)
-
-
-def get_role_by_name(
-    session: Session,
-    workspace_id: UUID,
-    role_name: str,
-) -> Role | None:
-
-    return (
-        session.query(Role)
-        .filter(
-            Role.workspace_id == workspace_id,
-            Role.role_name == role_name,
-        )
-        .first()
-    )
 
 
 # -----------------------------

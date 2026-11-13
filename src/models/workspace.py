@@ -71,11 +71,6 @@ class WorkspaceMember(Base):
             "user_id",
             name="uq_workspace_member",
         ),
-        ForeignKeyConstraint(
-            ["workspace_id", "role_id"],
-            ["roles.workspace_id", "roles.role_id"],
-            name="fk_workspace_member_role",
-        ),
     )
 
     workspace_member_id: Mapped[UUID] = mapped_column(
@@ -94,6 +89,7 @@ class WorkspaceMember(Base):
     )
 
     role_id: Mapped[UUID] = mapped_column(
+        ForeignKey("roles.role_id"),
         nullable=False,
     )
 

@@ -1,4 +1,3 @@
-
 import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
@@ -25,9 +24,8 @@ def create_workspace_invitation(
     role_name: str,
 ):
     try:
-        role = workspace_repository.get_role_by_name(
+        role = workspace_repository.get_system_role_by_name(
             session=session,
-            workspace_id=workspace_id,
             role_name=role_name,
         )
 

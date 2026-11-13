@@ -4,16 +4,15 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.common.permissions import Permission
-from src.common.role_permissions import ROLE_PERMISSIONS
 from src.models.role import Role
 from src.models.workspace import Workspace
 from src.modules.authorization.decorators import require_workspace_permission
-from src.modules.authorization.repository import assign_permissions_to_role
 from src.modules.workspace.repositories import workspace_repository as repository
 
 # -----------------------------
 # CREATE WORKSPACE
 # -----------------------------
+
 
 def create_workspace(
     session: Session,
@@ -34,6 +33,18 @@ def create_workspace(
                 "A workspace with this slug already exists."
             )
 
+        # Get the existing global Owner role.
+        owner_role = repository.get_system_role_by_name(
+            session=session,
+            role_name="Owner",
+        )
+
+        if owner_role is None:
+            raise ValueError(
+                "Global Owner role is not configured."
+            )
+
+        # Create workspace.
         workspace = repository.create_workspace_record(
             session=session,
             name=name,
@@ -42,29 +53,7 @@ def create_workspace(
             creator_user_id=creator_user_id,
         )
 
-        roles = {}
-
-        for role_name, permissions in ROLE_PERMISSIONS.items():
-            role = repository.create_workspace_role(
-                session=session,
-                workspace_id=workspace.workspace_id,
-                role_name=role_name,
-                creator_user_id=creator_user_id,
-            )
-
-            roles[role_name] = role
-
-            assign_permissions_to_role(
-                session=session,
-                role=role,
-                permission_names=permissions,
-            )
-
-        owner_role = roles.get("Owner")
-
-        if owner_role is None:
-            raise ValueError("Owner role configuration is missing.")
-
+        # Add creator as workspace Owner.
         repository.create_workspace_member(
             session=session,
             workspace_id=workspace.workspace_id,
@@ -80,6 +69,7 @@ def create_workspace(
     except Exception:
         session.rollback()
         raise
+
 
 
 # -----------------------------

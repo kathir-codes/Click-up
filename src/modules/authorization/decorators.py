@@ -1,4 +1,3 @@
-
 from functools import wraps
 from inspect import signature
 
@@ -28,9 +27,7 @@ def require_workspace_permission(permission: Permission):
             )
 
             if not has_permission:
-                raise ValueError(
-                    f"You do not have permission: {permission.name}."
-                )
+                raise ValueError(f"You do not have permission: {permission.name}.")
 
             return func(*args, **kwargs)
 

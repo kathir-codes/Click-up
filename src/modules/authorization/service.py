@@ -1,15 +1,4 @@
-from src.modules.authorization.repository import (
-    assign_permissions_to_role,
-    user_has_workspace_permission,
-)
-
-
-def assign_role_permissions(session, role, permission_names):
-    return assign_permissions_to_role(
-        session=session,
-        role=role,
-        permission_names=permission_names,
-    )
+from src.modules.authorization.repository import user_has_workspace_permission
 
 
 def check_workspace_permission(

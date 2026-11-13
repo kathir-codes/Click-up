@@ -12,14 +12,8 @@ class Role(Base):
 
     __table_args__ = (
         UniqueConstraint(
-            "workspace_id",
             "role_name",
-            name="uq_workspace_role_name",
-        ),
-        UniqueConstraint(
-            "workspace_id",
-            "role_id",
-            name="uq_workspace_role_id",
+            name="uq_global_system_role_name",
         ),
     )
 
@@ -28,9 +22,9 @@ class Role(Base):
         default=uuid4,
     )
 
-    workspace_id: Mapped[UUID] = mapped_column(
+    workspace_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("workspaces.workspace_id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
 
     role_name: Mapped[str] = mapped_column(
@@ -44,9 +38,9 @@ class Role(Base):
         nullable=False,
     )
 
-    created_by: Mapped[UUID] = mapped_column(
+    created_by: Mapped[UUID | None] = mapped_column(
         ForeignKey("users.user_id"),
-        nullable=False,
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
